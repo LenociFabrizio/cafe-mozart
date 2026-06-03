@@ -1,0 +1,608 @@
+/* ============================================================
+   Bistrout & Café Mozart — Foglio di stile
+   Tema: nero elegante con accenti oro
+   Font: Cormorant Garamond (titoli) + Manrope (testo)
+   ============================================================ */
+
+/* ---------- Variabili di brand ---------- */
+:root {
+  --nero:        #0c0b09;   /* sfondo principale */
+  --nero-soft:   #15130f;   /* sezioni alternate */
+  --nero-card:   #1b1813;   /* superfici / card */
+  --oro:         #c9a44c;   /* oro principale */
+  --oro-chiaro:  #e6c878;   /* oro chiaro / hover */
+  --oro-tenue:   rgba(201,164,76,.15);
+  --crema:       #f3ecdd;   /* testo chiaro */
+  --grigio:      #b3ac9d;   /* testo secondario */
+  --bordo:       rgba(201,164,76,.22);
+  --display: "Cormorant Garamond", Georgia, serif;
+  --body: "Manrope", -apple-system, sans-serif;
+  --radius: 14px;
+  --maxw: 1180px;
+  --ease: cubic-bezier(.22,.61,.36,1);
+}
+
+/* ---------- Reset di base ---------- */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+body {
+  font-family: var(--body);
+  background: var(--nero);
+  color: var(--crema);
+  line-height: 1.65;
+  font-weight: 300;
+  overflow-x: hidden;
+}
+img { max-width: 100%; display: block; }
+a { color: inherit; text-decoration: none; }
+
+/* Texture sottile di sfondo per dare atmosfera */
+body::before {
+  content: "";
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(800px 400px at 80% -10%, rgba(201,164,76,.07), transparent 60%),
+    radial-gradient(700px 400px at -10% 110%, rgba(201,164,76,.05), transparent 60%);
+  pointer-events: none; z-index: 0;
+}
+
+/* ---------- Contenitori ---------- */
+.container { width: 92%; max-width: var(--maxw); margin: 0 auto; position: relative; z-index: 1; }
+.container.narrow { max-width: 760px; }
+.section { padding: 110px 0; position: relative; }
+.section.servizi, .section.prenota, .section.contatti { background: var(--nero-soft); }
+
+/* ---------- Tipografia titoli ---------- */
+h1, h2, h3 { font-family: var(--display); font-weight: 500; line-height: 1.1; letter-spacing: .3px; }
+h2 { font-size: clamp(2rem, 4vw, 3rem); color: var(--crema); }
+h2 em, h1 em { font-style: italic; color: var(--oro); }
+.eyebrow {
+  font-family: var(--body);
+  text-transform: uppercase; letter-spacing: 4px;
+  font-size: .72rem; font-weight: 600;
+  color: var(--oro); margin-bottom: 14px;
+}
+.section-head { margin-bottom: 56px; }
+.section-head.center { text-align: center; }
+.section-lead { color: var(--grigio); max-width: 560px; margin: 16px auto 0; }
+
+/* ---------- Pulsanti ---------- */
+.btn {
+  display: inline-block;
+  padding: 14px 30px;
+  font-family: var(--body);
+  font-size: .82rem; font-weight: 600;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  border-radius: 100px; cursor: pointer;
+  transition: all .35s var(--ease); border: 1px solid transparent;
+  background: transparent;
+  -webkit-appearance: none; appearance: none;
+}
+button.btn { color: inherit; }
+.btn-gold {
+  background: linear-gradient(135deg, var(--oro), var(--oro-chiaro));
+  color: var(--nero);
+  box-shadow: 0 10px 30px -10px rgba(201,164,76,.6);
+}
+.btn-gold:hover { transform: translateY(-2px); box-shadow: 0 16px 38px -10px rgba(201,164,76,.75); }
+.btn-ghost { border-color: var(--bordo); color: var(--crema); }
+.btn-ghost:hover { border-color: var(--oro); color: var(--oro); }
+.btn.full { width: 100%; text-align: center; }
+
+/* ============================================================
+   NAVBAR
+   ============================================================ */
+.navbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  transition: background .4s var(--ease), padding .4s var(--ease), box-shadow .4s var(--ease);
+  padding: 22px 0;
+}
+.navbar.scrolled {
+  background: rgba(12,11,9,.92);
+  backdrop-filter: blur(12px);
+  padding: 14px 0;
+  box-shadow: 0 1px 0 var(--bordo);
+}
+.nav-inner { width: 92%; max-width: var(--maxw); margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-mark {
+  width: 42px; height: 42px; flex: none;
+  display: grid; place-items: center;
+  font-family: var(--display); font-size: 1.5rem; font-weight: 600;
+  color: var(--nero); background: linear-gradient(135deg, var(--oro), var(--oro-chiaro));
+  border-radius: 50%;
+}
+.brand-text { font-family: var(--display); font-size: 1.4rem; line-height: 1; color: var(--crema); display: flex; flex-direction: column; }
+.brand-text small { font-family: var(--body); font-size: .55rem; letter-spacing: 4px; color: var(--oro); margin-top: 3px; }
+.nav-links { display: flex; gap: 30px; }
+.nav-links a { font-size: .9rem; font-weight: 400; color: var(--crema); position: relative; transition: color .3s; }
+.nav-links a::after { content: ""; position: absolute; left: 0; bottom: -6px; width: 0; height: 1px; background: var(--oro); transition: width .3s var(--ease); }
+.nav-links a:hover { color: var(--oro); }
+.nav-links a:hover::after { width: 100%; }
+
+/* Hamburger */
+.hamburger { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 6px; }
+.hamburger span { width: 26px; height: 2px; background: var(--oro); transition: all .3s var(--ease); }
+.hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* Strumenti a destra nella navbar (lingua + hamburger) */
+.nav-tools { display: flex; align-items: center; gap: 14px; }
+.lang-select {
+  background: rgba(12,11,9,.6); color: var(--crema);
+  border: 1px solid var(--bordo); border-radius: 100px;
+  padding: 8px 14px; font-family: var(--body); font-size: .82rem;
+  cursor: pointer; transition: border-color .3s, color .3s;
+  -webkit-appearance: none; appearance: none;
+}
+.lang-select:hover { border-color: var(--oro); color: var(--oro); }
+.lang-select:focus { outline: none; border-color: var(--oro); }
+.lang-select option { background: var(--nero); color: var(--crema); }
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center; position: relative; overflow: hidden;
+  background: url("https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1600&q=80") center/cover no-repeat fixed;
+}
+.hero-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(12,11,9,.7), rgba(12,11,9,.82) 60%, var(--nero));
+}
+.hero-content { position: relative; z-index: 2; max-width: 760px; padding: 0 20px; }
+.hero-kicker { text-transform: uppercase; letter-spacing: 5px; font-size: .8rem; color: var(--oro); margin-bottom: 22px; }
+.hero-title { font-size: clamp(3rem, 9vw, 6rem); color: var(--crema); }
+.hero-sub { color: var(--grigio); font-size: 1.1rem; margin: 24px auto 36px; max-width: 540px; }
+.hero-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+.hero-rating { margin-top: 38px; display: flex; gap: 12px; align-items: center; justify-content: center; color: var(--grigio); font-size: .9rem; }
+.stars { color: var(--oro); letter-spacing: 2px; }
+.scroll-hint {
+  position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%); z-index: 2;
+  font-size: 1.5rem; color: var(--oro); animation: bob 2s infinite var(--ease);
+}
+@keyframes bob { 0%,100% { transform: translate(-50%,0); } 50% { transform: translate(-50%,10px); } }
+
+/* ============================================================
+   CHI SIAMO / CONTATTI (layout split)
+   ============================================================ */
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+.split-media { position: relative; border-radius: var(--radius); overflow: hidden; }
+.split-media img { width: 100%; height: 100%; object-fit: cover; transition: transform .8s var(--ease); }
+.split-media:hover img { transform: scale(1.05); }
+.media-badge {
+  position: absolute; bottom: 18px; left: 18px;
+  background: rgba(12,11,9,.85); border: 1px solid var(--bordo);
+  color: var(--oro); padding: 8px 16px; border-radius: 100px;
+  font-size: .8rem; letter-spacing: 1px; backdrop-filter: blur(6px);
+}
+.split-text p { color: var(--grigio); margin-bottom: 16px; }
+.split-text strong { color: var(--crema); font-weight: 500; }
+.facts { list-style: none; display: flex; gap: 36px; margin-top: 30px; }
+.facts li { font-size: .85rem; color: var(--grigio); display: flex; flex-direction: column; }
+.facts li span { font-family: var(--display); font-size: 2rem; color: var(--oro); line-height: 1; margin-bottom: 4px; }
+
+/* ============================================================
+   SERVIZI
+   ============================================================ */
+.grid-servizi { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 22px; }
+.card-servizio {
+  background: var(--nero-card); border: 1px solid var(--bordo);
+  border-radius: var(--radius); padding: 38px 28px; text-align: center;
+  transition: transform .4s var(--ease), border-color .4s, box-shadow .4s;
+}
+.card-servizio:hover { transform: translateY(-8px); border-color: var(--oro); box-shadow: 0 20px 40px -20px rgba(0,0,0,.8); }
+.card-icon { font-size: 2rem; color: var(--oro); margin-bottom: 16px; display: inline-flex; align-items: center; justify-content: center; }
+.card-icon svg { display: block; }
+.card-servizio h3 { font-size: 1.5rem; color: var(--crema); margin-bottom: 10px; }
+.card-servizio p { color: var(--grigio); font-size: .92rem; }
+
+/* ============================================================
+   PIATTO DEL GIORNO
+   ============================================================ */
+.grid-piatti { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 20px; }
+.card-piatto {
+  background: linear-gradient(160deg, var(--nero-card), var(--nero-soft));
+  border: 1px solid var(--bordo); border-radius: var(--radius);
+  padding: 30px 26px; position: relative; overflow: hidden;
+  transition: transform .4s var(--ease), border-color .4s;
+}
+.card-piatto:hover { transform: translateY(-6px); border-color: var(--oro); }
+.card-piatto::before {
+  content: "✦"; position: absolute; top: 18px; right: 20px;
+  color: var(--oro); opacity: .5; font-size: 1.1rem;
+}
+.card-piatto .num { font-family: var(--display); font-size: 1.1rem; color: var(--oro); display: block; margin-bottom: 8px; }
+.card-piatto h3 { font-size: 1.45rem; color: var(--crema); }
+.piatti-loading, .piatti-empty { color: var(--grigio); text-align: center; grid-column: 1/-1; font-style: italic; }
+
+/* ============================================================
+   SEZIONE MENU PDF
+   ============================================================ */
+.menu-pdf { background: var(--nero); }
+.menu-card {
+  background: linear-gradient(160deg, var(--nero-card), var(--nero-soft));
+  border: 1px solid var(--bordo); border-radius: var(--radius);
+  padding: 56px 40px; text-align: center;
+}
+.menu-card .eyebrow { margin-bottom: 12px; }
+.menu-card h2 { margin-bottom: 12px; }
+.menu-card .section-lead { margin: 0 auto 28px; }
+.menu-icon { font-size: 2.4rem; color: var(--oro); margin-bottom: 16px; display: inline-flex; align-items: center; justify-content: center; }
+.menu-icon svg { display: block; }
+.menu-unavailable { color: var(--grigio); font-style: italic; }
+
+/* ============================================================
+   FORM PRENOTAZIONE
+   ============================================================ */
+.form-card {
+  background: var(--nero-card); border: 1px solid var(--bordo);
+  border-radius: var(--radius); padding: 40px;
+  display: flex; flex-direction: column; gap: 20px;
+}
+.form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 18px; }
+.form-card label { display: flex; flex-direction: column; gap: 8px; font-size: .82rem; color: var(--grigio); letter-spacing: .5px; }
+.form-card input, .form-card select, .form-card textarea {
+  background: var(--nero); border: 1px solid var(--bordo);
+  border-radius: 10px; padding: 13px 15px;
+  color: var(--crema); font-family: var(--body); font-size: .95rem;
+  transition: border-color .3s, box-shadow .3s; resize: vertical;
+}
+.form-card input:focus, .form-card select:focus, .form-card textarea:focus {
+  outline: none; border-color: var(--oro); box-shadow: 0 0 0 3px var(--oro-tenue);
+}
+/* Adatta i selettori data/ora al tema scuro */
+.form-card input[type="date"], .form-card input[type="time"], .form-card select { color-scheme: dark; }
+.form-msg { text-align: center; font-size: .92rem; min-height: 1em; margin: 0; }
+.form-msg.ok { color: var(--oro-chiaro); font-weight: 500; }
+.form-msg.error { color: #e08a7a; }
+
+/* Errori di validazione per campo */
+.field-err { color: #e08a7a; font-size: .76rem; min-height: 0; display: block; transition: min-height .2s; }
+.field-err:not(:empty) { margin-top: 2px; }
+.form-card input.invalid, .form-card select.invalid {
+  border-color: #c0584a !important; box-shadow: 0 0 0 3px rgba(192,88,74,.18) !important;
+}
+.form-card optgroup { color: var(--oro); font-style: normal; background: var(--nero); }
+.form-card optgroup option { color: var(--crema); }
+
+/* Blocco scelta piatti per persona */
+.dishes-block {
+  background: var(--nero); border: 1px solid var(--bordo); border-radius: 12px; padding: 20px;
+}
+.dishes-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px; margin-bottom: 14px; }
+.dishes-head strong { font-family: var(--display); font-size: 1.25rem; color: var(--crema); }
+.dishes-hint { font-size: .8rem; color: var(--oro); }
+.guest-dishes { display: grid; gap: 14px; }
+.guest-row label { font-size: .8rem; }
+.guest-row .dish-desc { color: var(--grigio); font-size: .8rem; margin: 6px 0 0; font-style: italic; }
+.guest-row .dish-desc:empty { display: none; }
+
+/* Prezzo e descrizione nelle card piatto del giorno */
+.piatto-desc { color: var(--grigio); font-size: .88rem; margin-top: 8px; }
+.piatto-prezzo { display: inline-block; margin-top: 12px; color: var(--oro); font-family: var(--display); font-size: 1.25rem; }
+
+/* ============================================================
+   RECENSIONI
+   ============================================================ */
+.grid-recensioni { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 22px; }
+.card-recensione {
+  background: var(--nero-card); border: 1px solid var(--bordo);
+  border-radius: var(--radius); padding: 32px 28px;
+  transition: transform .4s var(--ease);
+}
+.card-recensione:hover { transform: translateY(-6px); }
+.card-recensione .stars { display: block; font-size: 1.05rem; margin-bottom: 16px; }
+.card-recensione blockquote { font-family: var(--display); font-size: 1.3rem; line-height: 1.4; color: var(--crema); font-style: italic; margin-bottom: 16px; }
+.card-recensione figcaption { color: var(--oro); font-size: .85rem; letter-spacing: 1px; }
+
+/* ============================================================
+   CONTATTI
+   ============================================================ */
+.info-list { list-style: none; margin: 28px 0 32px; display: flex; flex-direction: column; gap: 22px; }
+.info-list li { display: flex; gap: 16px; }
+.info-icon {
+  width: 44px; height: 44px; flex: none; display: grid; place-items: center;
+  background: var(--oro-tenue); border: 1px solid var(--bordo); border-radius: 50%;
+  color: var(--oro); font-size: 1.1rem;
+}
+.info-icon svg { display: block; }
+.info-list strong { display: block; color: var(--crema); font-weight: 500; margin-bottom: 3px; }
+.info-list div { color: var(--grigio); font-size: .94rem; }
+.info-list div strong { display: inline; color: var(--oro); font-weight: 500; margin: 0; }
+.info-list a { color: var(--oro); transition: color .3s; }
+.info-list a:hover { color: var(--oro-chiaro); }
+.split-media.map { min-height: 380px; }
+.split-media.map iframe { width: 100%; height: 100%; min-height: 380px; border: 0; filter: grayscale(.3) contrast(1.05); }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.footer { background: #080705; border-top: 1px solid var(--bordo); padding-top: 60px; }
+.footer-inner { display: flex; flex-wrap: wrap; gap: 30px; justify-content: space-between; align-items: flex-start; padding-bottom: 40px; }
+.footer-brand { display: flex; align-items: center; gap: 14px; }
+.footer-brand strong { font-family: var(--display); font-size: 1.3rem; color: var(--crema); display: block; }
+.footer-brand small { color: var(--oro); font-size: .72rem; letter-spacing: 2px; text-transform: uppercase; }
+.footer-nav { display: flex; flex-direction: column; gap: 10px; }
+.footer-nav a { color: var(--grigio); font-size: .9rem; transition: color .3s; }
+.footer-nav a:hover { color: var(--oro); }
+.footer-info p { color: var(--grigio); font-size: .88rem; margin-bottom: 6px; }
+.footer-info a { color: var(--oro); }
+.footer-info .footer-edenred {
+  display: inline-block; margin-top: 6px; padding: 5px 12px;
+  background: var(--oro-tenue); border: 1px solid var(--bordo);
+  border-radius: 100px; font-size: .78rem;
+}
+.footer-info .footer-edenred strong { color: var(--oro); font-weight: 600; }
+.footer-info .footer-social { display: flex; gap: 14px; margin-top: 12px; }
+.footer-info .footer-social a {
+  width: 36px; height: 36px; display: grid; place-items: center;
+  border: 1px solid var(--bordo); border-radius: 50%;
+  color: var(--crema); transition: all .3s var(--ease);
+}
+.footer-info .footer-social a:hover { color: var(--oro); border-color: var(--oro); transform: translateY(-2px); }
+.footer-bottom { border-top: 1px solid rgba(255,255,255,.06); text-align: center; padding: 22px 0; }
+.footer-bottom p { color: var(--grigio); font-size: .8rem; }
+
+/* ============================================================
+   PULSANTE WHATSAPP FLOTTANTE
+   ============================================================ */
+.whatsapp-fab {
+  position: fixed; bottom: 26px; right: 26px; z-index: 90;
+  width: 58px; height: 58px; border-radius: 50%;
+  background: #25d366; color: #fff;
+  display: grid; place-items: center;
+  box-shadow: 0 10px 30px -8px rgba(37,211,102,.6);
+  transition: transform .3s var(--ease);
+  animation: pulse 2.5s infinite;
+}
+.whatsapp-fab:hover { transform: scale(1.1); }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(37,211,102,.5); } 70% { box-shadow: 0 0 0 16px rgba(37,211,102,0); } 100% { box-shadow: 0 0 0 0 rgba(37,211,102,0); } }
+
+/* ============================================================
+   ANIMAZIONE SCROLL (reveal)
+   ============================================================ */
+.reveal { opacity: 0; transform: translateY(28px); transition: opacity .8s var(--ease), transform .8s var(--ease); }
+.reveal.visible { opacity: 1; transform: none; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 860px) {
+  .section { padding: 80px 0; }
+  .split { grid-template-columns: 1fr; gap: 36px; }
+  .split-media { max-height: 360px; }
+
+  /* Menu mobile */
+  .hamburger { display: flex; }
+  .nav-links {
+    position: fixed; top: 0; right: -100%; width: 75%; max-width: 320px; height: 100vh;
+    background: rgba(12,11,9,.98); backdrop-filter: blur(14px);
+    flex-direction: column; justify-content: center; gap: 26px; padding: 40px;
+    transition: right .45s var(--ease); box-shadow: -20px 0 60px rgba(0,0,0,.6);
+  }
+  .nav-links.open { right: 0; }
+  .nav-links a { font-size: 1.3rem; font-family: var(--display); }
+
+  .hero { background-attachment: scroll; }
+  .facts { gap: 24px; }
+}
+@media (max-width: 480px) {
+  .form-card { padding: 26px 20px; }
+  .hero-actions { flex-direction: column; }
+  .hero-actions .btn { width: 100%; }
+  .whatsapp-fab { width: 52px; height: 52px; bottom: 18px; right: 18px; }
+}
+
+/* Rispetta chi preferisce meno animazioni */
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+  * { animation: none !important; scroll-behavior: auto; }
+}
+
+/* ============================================================
+   MODALE VISUALIZZATORE PDF (menu, senza download)
+   ============================================================ */
+.pdf-modal {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,.85); backdrop-filter: blur(6px);
+  display: none; align-items: center; justify-content: center;
+  padding: 30px 20px;
+}
+.pdf-modal.open { display: flex; }
+.pdf-modal-inner {
+  position: relative; width: 100%; max-width: 980px; height: 88vh;
+  background: var(--nero-card); border: 1px solid var(--bordo);
+  border-radius: var(--radius); overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,.6);
+}
+.pdf-modal-inner iframe { width: 100%; height: 100%; border: 0; background: #fff; }
+.pdf-close {
+  position: absolute; top: 12px; right: 14px; z-index: 2;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: rgba(12,11,9,.85); border: 1px solid var(--bordo);
+  color: var(--oro); font-size: 1.6rem; line-height: 1; cursor: pointer;
+  transition: background .25s, transform .25s;
+}
+.pdf-close:hover { background: var(--oro); color: var(--nero); transform: rotate(90deg); }
+
+/* Nota formale sotto il form di prenotazione */
+.booking-note {
+  margin-top: 22px; padding: 18px 22px;
+  background: var(--nero-card); border: 1px solid var(--bordo);
+  border-left: 3px solid var(--oro); border-radius: 10px;
+  color: var(--grigio); font-size: .9rem; line-height: 1.6;
+}
+.booking-note strong { color: var(--crema); font-weight: 500; }
+.booking-note a { color: var(--oro); text-decoration: none; }
+.booking-note a:hover { color: var(--oro-chiaro); }
+
+@media (max-width: 600px) {
+  .pdf-modal { padding: 15px 10px; }
+  .pdf-modal-inner { height: 92vh; }
+  .pdf-close { width: 38px; height: 38px; font-size: 1.4rem; top: 8px; right: 8px; }
+}
+
+/* ============================================================
+   GDPR — Cookie banner, modale privacy, checkbox consenso
+   ============================================================ */
+.cookie-banner {
+  position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 150;
+  display: none;
+  background: rgba(12,11,9,.96); backdrop-filter: blur(10px);
+  border: 1px solid var(--bordo); border-radius: var(--radius);
+  padding: 18px 22px; box-shadow: 0 20px 50px rgba(0,0,0,.6);
+  max-width: 900px; margin: 0 auto;
+  display: none; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  animation: cookieIn .4s var(--ease);
+}
+.cookie-banner.show { display: flex; }
+.cookie-banner p { color: var(--grigio); font-size: .85rem; line-height: 1.6; margin: 0; flex: 1 1 320px; }
+.cookie-banner p strong { color: var(--crema); font-weight: 500; }
+.cookie-banner a { color: var(--oro); text-decoration: underline; text-underline-offset: 3px; }
+.cookie-banner .btn { padding: 11px 24px; font-size: .76rem; flex-shrink: 0; }
+@keyframes cookieIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+/* Modale informativa privacy */
+.privacy-modal {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,.85); backdrop-filter: blur(6px);
+  display: none; align-items: center; justify-content: center;
+  padding: 30px 16px;
+}
+.privacy-modal.open { display: flex; }
+.privacy-modal-inner {
+  position: relative; width: 100%; max-width: 760px; max-height: 88vh;
+  background: var(--nero-card); border: 1px solid var(--bordo);
+  border-radius: var(--radius); overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,.6);
+  display: flex; flex-direction: column;
+}
+.privacy-content {
+  padding: 40px 36px; overflow-y: auto;
+  color: var(--grigio); font-size: .92rem; line-height: 1.65;
+}
+.privacy-content h2 { font-family: var(--display); color: var(--crema); font-size: 2rem; margin-bottom: 6px; }
+.privacy-content h3 { font-family: var(--display); color: var(--oro); font-size: 1.15rem; margin: 22px 0 8px; }
+.privacy-content p { margin-bottom: 10px; }
+.privacy-content a { color: var(--oro); text-decoration: underline; text-underline-offset: 3px; }
+.privacy-content .privacy-meta { font-size: .78rem; color: var(--grigio); margin-bottom: 18px; font-style: italic; }
+.privacy-content .btn { margin-top: 24px; }
+
+/* Checkbox di consenso nel form */
+.privacy-check {
+  display: flex !important; flex-direction: row !important; align-items: flex-start; gap: 12px;
+  background: var(--nero); border: 1px solid var(--bordo);
+  border-radius: 10px; padding: 14px 16px;
+  cursor: pointer;
+}
+.privacy-check input[type="checkbox"] {
+  flex-shrink: 0; width: 18px; height: 18px; margin-top: 2px;
+  accent-color: var(--oro); cursor: pointer;
+}
+.privacy-check span { font-size: .85rem; color: var(--grigio); line-height: 1.55; }
+.privacy-check a { color: var(--oro); text-decoration: underline; text-underline-offset: 3px; }
+.privacy-check .field-err { display: block; margin-top: 6px; }
+
+@media (max-width: 600px) {
+  .cookie-banner { padding: 14px 16px; left: 10px; right: 10px; bottom: 10px; }
+  .privacy-content { padding: 32px 22px; }
+}
+
+/* ============================================================
+   BISTROUT — Hero badges, Colazioni Salate, Menu del Giorno,
+   selezione pietanze multipla. Tema oro/nero invariato.
+   ============================================================ */
+
+/* --- Hero: badge evidenziati --- */
+.hero-badges {
+  list-style: none; display: flex; flex-wrap: wrap; gap: 10px 18px;
+  justify-content: center; margin: 26px auto 0; max-width: 720px;
+}
+.hero-badges li {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: .82rem; color: var(--crema); letter-spacing: .3px;
+  background: rgba(255,255,255,.04); border: 1px solid var(--bordo);
+  padding: 8px 16px; border-radius: 100px; backdrop-filter: blur(4px);
+}
+.hero-badges .check {
+  display: inline-grid; place-items: center; width: 18px; height: 18px;
+  border-radius: 50%; background: var(--oro); color: var(--nero);
+  font-size: .7rem; font-weight: 700;
+}
+
+/* --- Sezione Colazioni Salate (premium) --- */
+.section.salate { background: linear-gradient(180deg, var(--nero) 0%, var(--nero-card) 100%); }
+.section-lead { color: var(--grigio); max-width: 640px; margin: 10px auto 0; font-size: 1rem; line-height: 1.6; }
+.grid-salate {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr));
+  gap: 22px; margin-top: 40px;
+}
+.card-salata {
+  background: var(--nero-card); border: 1px solid var(--bordo);
+  border-radius: var(--radius); overflow: hidden;
+  transition: transform .4s var(--ease), border-color .4s var(--ease), box-shadow .4s var(--ease);
+}
+.card-salata:hover {
+  transform: translateY(-6px); border-color: var(--oro);
+  box-shadow: 0 20px 44px -18px rgba(201,164,76,.5);
+}
+.salata-img {
+  height: 190px; background-size: cover; background-position: center;
+  position: relative;
+}
+.salata-img::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(15,14,12,0) 40%, rgba(15,14,12,.55) 100%);
+}
+.salata-body { padding: 20px 22px 24px; }
+.salata-body h3 { font-family: var(--display); color: var(--crema); font-size: 1.4rem; margin-bottom: 6px; }
+.salata-body p { color: var(--grigio); font-size: .9rem; line-height: 1.55; }
+
+/* --- Menu del Giorno: badge fascia oraria, prezzo, esaurito --- */
+.dishes-window {
+  display: inline-block; margin-top: 16px; padding: 7px 18px;
+  background: var(--oro-tenue); border: 1px solid var(--oro);
+  border-radius: 100px; color: var(--oro);
+  font-size: .82rem; letter-spacing: .5px;
+}
+.card-piatto { position: relative; }
+.card-piatto .piatto-prezzo {
+  display: inline-block; margin-top: 10px;
+  font-family: var(--display); font-size: 1.3rem; color: var(--oro); font-weight: 600;
+}
+.card-piatto.esaurito { opacity: .68; }
+.card-piatto.esaurito h3 { text-decoration: line-through; text-decoration-color: rgba(224,138,122,.55); }
+.badge-esaurito {
+  position: absolute; top: 16px; right: 16px;
+  background: rgba(224,138,122,.15); color: #e08a7a;
+  border: 1px solid rgba(224,138,122,.4);
+  font-size: .68rem; text-transform: uppercase; letter-spacing: .5px;
+  padding: 3px 10px; border-radius: 100px;
+}
+
+/* --- Selezione pietanze (facoltativa, multipla con rimozione) --- */
+.guest-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+.guest-row label { flex: 1; margin: 0; }
+.guest-row .dish-remove {
+  flex-shrink: 0; width: 38px; height: 44px; margin-top: 0;
+  background: var(--nero); border: 1px solid var(--bordo); color: var(--grigio);
+  border-radius: 10px; cursor: pointer; font-size: 1.2rem; line-height: 1;
+  transition: all .25s;
+}
+.guest-row .dish-remove:hover { border-color: #c0584a; color: #e08a7a; }
+.guest-row .dish-desc { flex-basis: 100%; }
+.btn-add-dish {
+  background: transparent; border: 1px dashed var(--bordo); color: var(--oro);
+  font-family: var(--body); font-size: .85rem; padding: 11px 16px;
+  border-radius: 10px; cursor: pointer; width: 100%; margin-top: 4px;
+  transition: all .25s;
+}
+.btn-add-dish:hover { border-color: var(--oro); background: var(--oro-tenue); }
+
+@media (max-width: 600px) {
+  .hero-badges { gap: 8px; }
+  .hero-badges li { font-size: .76rem; padding: 7px 13px; }
+  .salata-img { height: 165px; }
+}

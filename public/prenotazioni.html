@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prenotazioni — Bistrout &amp; Café Mozart</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    body { min-height: 100vh; padding: 28px 0 60px; }
+    .wrap { width: 92%; max-width: 1180px; margin: 0 auto; position: relative; z-index: 1; }
+
+    /* Login */
+    .login-box { max-width: 460px; margin: 8vh auto 0; background: var(--nero-card); border: 1px solid var(--bordo); border-radius: var(--radius); padding: 44px; }
+    .login-box h1 { font-size: 1.9rem; color: var(--crema); margin-bottom: 6px; }
+    .login-box label { display: flex; flex-direction: column; gap: 8px; font-size: .82rem; color: var(--grigio); margin: 14px 0 18px; }
+    .login-box input { background: var(--nero); border: 1px solid var(--bordo); border-radius: 10px; padding: 13px 15px; color: var(--crema); font-family: var(--body); }
+    .login-box input:focus { outline: none; border-color: var(--oro); }
+
+    /* Topbar */
+    .topbar { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .topbar h1 { font-family: var(--display); font-size: 2rem; color: var(--crema); }
+    .topbar .eyebrow { margin-bottom: 4px; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .toolbar .btn { font-size: .76rem; padding: 10px 18px; }
+    .toolbar input[type="date"] { background: var(--nero-card); border: 1px solid var(--bordo); border-radius: 100px; padding: 9px 16px; color: var(--crema); font-family: var(--body); font-size: .8rem; }
+    .toolbar input[type="date"]:focus { outline: none; border-color: var(--oro); }
+
+    /* Riepilogo */
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 14px; margin-bottom: 24px; }
+    .stat { background: var(--nero-card); border: 1px solid var(--bordo); border-radius: var(--radius); padding: 16px 18px; }
+    .stat b { font-family: var(--display); font-size: 1.8rem; color: var(--oro); display: block; line-height: 1; }
+    .stat span { font-size: .76rem; color: var(--grigio); }
+
+    /* Griglia disponibilità per fascia oraria */
+    .slots { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 12px; margin-bottom: 28px; }
+    .slot-card { background: var(--nero-card); border: 1px solid var(--bordo); border-radius: 14px; padding: 14px 16px; }
+    .slot-card .ora { font-family: var(--display); font-size: 1.3rem; color: var(--crema); margin-bottom: 8px; }
+    .slot-card .bar { height: 8px; background: var(--nero); border: 1px solid var(--bordo); border-radius: 100px; overflow: hidden; margin-bottom: 8px; }
+    .slot-card .bar > i { display: block; height: 100%; background: linear-gradient(90deg, var(--oro), var(--oro-chiaro)); transition: width .4s ease; }
+    .slot-card.pieno .bar > i { background: linear-gradient(90deg, #c0584a, #e08a7a); }
+    .slot-card .info { font-size: .76rem; color: var(--grigio); display: flex; justify-content: space-between; }
+    .slot-card .info b { color: var(--oro); }
+    .slot-card.pieno .info b { color: #e08a7a; }
+
+    /* Tabs stato */
+    .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+    .tab { background: var(--nero-card); border: 1px solid var(--bordo); color: var(--grigio); font-family: var(--body); font-size: .78rem; padding: 9px 16px; border-radius: 100px; cursor: pointer; transition: all .25s; }
+    .tab:hover { color: var(--crema); }
+    .tab.active { background: var(--oro-tenue); border-color: var(--oro); color: var(--oro); }
+    .tab .count { opacity: .7; }
+
+    /* Prenotazioni */
+    .sec-title { font-family: var(--display); color: var(--crema); font-size: 1.4rem; margin: 8px 0 14px; }
+    .resv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px,1fr)); gap: 16px; }
+    .rcard { background: var(--nero-card); border: 1px solid var(--bordo); border-radius: var(--radius); padding: 18px; display: flex; flex-direction: column; gap: 10px; transition: border-color .3s, opacity .3s; }
+    .rcard.st-confermata { border-color: rgba(120,180,120,.35); }
+    .rcard.st-attesa { border-color: rgba(220,180,90,.35); }
+    .rcard.st-rifiutata { opacity: .55; }
+    .rcard.st-completata { opacity: .6; }
+    .rcard .r-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    .rcard .r-name { font-weight: 600; color: var(--crema); font-size: 1.05rem; }
+    .badges { display: flex; flex-direction: column; gap: 5px; align-items: flex-end; }
+    .badge { font-size: .68rem; padding: 3px 9px; border-radius: 100px; white-space: nowrap; text-transform: uppercase; letter-spacing: .4px; }
+    .badge.persone { background: var(--oro-tenue); color: var(--oro); border: 1px solid var(--bordo); font-family: var(--display); font-size: .82rem; text-transform: none; }
+    .badge.st-attesa { color: #e0b85a; border: 1px solid rgba(220,180,90,.4); }
+    .badge.st-confermata { color: #8fc98f; border: 1px solid rgba(120,180,120,.4); }
+    .badge.st-rifiutata { color: #e08a7a; border: 1px solid rgba(224,138,122,.4); }
+    .badge.st-completata { color: var(--grigio); border: 1px solid var(--bordo); }
+    .badge.origine { color: var(--grigio); border: 1px solid var(--bordo); font-size: .62rem; }
+    .rcard .r-meta { font-size: .82rem; color: var(--grigio); display: grid; gap: 4px; }
+    .rcard .r-meta .ico { color: var(--oro); }
+    .rcard .r-meta a { color: var(--oro); }
+    .rcard .r-dishes { border-top: 1px solid rgba(255,255,255,.06); padding-top: 8px; font-size: .8rem; }
+    .rcard .r-dishes ul { list-style: none; display: flex; flex-direction: column; gap: 3px; }
+    .rcard .r-dishes .cat { color: var(--oro); font-size: .68rem; }
+    .rcard .r-dishes .none { color: var(--grigio); font-style: italic; }
+    .rcard .r-note { font-size: .78rem; color: var(--grigio); font-style: italic; border-top: 1px solid rgba(255,255,255,.06); padding-top: 8px; }
+    .rcard .r-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+    .rcard .r-actions button { flex: 1 1 auto; min-width: 70px; font-size: .74rem; padding: 9px; border-radius: 8px; cursor: pointer; font-family: var(--body); border: 1px solid var(--bordo); background: var(--nero); color: var(--crema); transition: all .25s; }
+    .rcard .r-actions .ok-btn:hover { border-color: #8fc98f; color: #8fc98f; }
+    .rcard .r-actions .no-btn:hover { border-color: #e08a7a; color: #e08a7a; }
+    .rcard .r-actions .done-btn:hover { border-color: var(--oro); color: var(--oro); }
+    .rcard .r-actions .edit-btn:hover { border-color: var(--oro); color: var(--oro); }
+    .rcard .r-actions .del-btn:hover { border-color: #c0584a; color: #e08a7a; }
+    .empty { color: var(--grigio); font-style: italic; padding: 20px 0; }
+
+    /* Form nuova prenotazione (manuale / telefonica / walk-in) */
+    .new-resv { background: var(--nero-card); border: 1px solid var(--bordo); border-radius: var(--radius); padding: 22px 24px; margin-bottom: 28px; }
+    .new-resv h3 { font-family: var(--display); color: var(--oro); font-size: 1.3rem; margin-bottom: 4px; }
+    .new-resv .hint { font-size: .8rem; color: var(--grigio); margin-bottom: 16px; }
+    .nr-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 12px; }
+    .nr-grid label { display: flex; flex-direction: column; gap: 6px; font-size: .76rem; color: var(--grigio); }
+    .nr-grid input, .nr-grid select { background: var(--nero); border: 1px solid var(--bordo); border-radius: 9px; padding: 10px 12px; color: var(--crema); font-family: var(--body); font-size: .9rem; }
+    .nr-grid input:focus, .nr-grid select:focus { outline: none; border-color: var(--oro); }
+    .new-resv .nr-foot { display: flex; gap: 10px; align-items: center; margin-top: 14px; flex-wrap: wrap; }
+    .collapse-toggle { background: var(--nero-card); border: 1px dashed var(--bordo); color: var(--oro); font-family: var(--body); font-size: .82rem; padding: 12px; border-radius: 12px; cursor: pointer; width: 100%; margin-bottom: 28px; transition: all .25s; }
+    .collapse-toggle:hover { border-color: var(--oro); }
+
+    /* Modale conferma / link cliente */
+    .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.7); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
+    .modal-bg.show { display: flex; }
+    .modal { background: var(--nero-card); border: 1px solid var(--bordo); border-radius: var(--radius); padding: 32px; max-width: 440px; text-align: center; }
+    .modal h3 { font-family: var(--display); color: var(--crema); font-size: 1.5rem; margin-bottom: 10px; }
+    .modal p { color: var(--grigio); font-size: .9rem; margin-bottom: 22px; }
+    .modal .row { display: flex; gap: 10px; }
+    .modal .row .btn { flex: 1; }
+    .danger { background: #c0584a !important; color: #fff !important; box-shadow: none !important; }
+
+    .msg { font-size: .85rem; min-height: 1em; }
+    .msg.error { color: #e08a7a; }
+    .msg.ok { color: #8fc98f; }
+    .back-link { color: var(--oro); font-size: .85rem; }
+    .hidden { display: none !important; }
+
+    /* Easter egg firma */
+    .signature { margin-top: 50px; text-align: center; color: var(--grigio); font-size: .74rem; letter-spacing: 1px; user-select: none; }
+    .signature .secret { color: var(--oro); cursor: pointer; transition: color .25s; font-family: var(--display); font-style: italic; }
+    .signature .secret:hover { color: var(--oro-chiaro); }
+    .toast { position: fixed; left: 50%; bottom: 30px; transform: translate(-50%, 60px); background: linear-gradient(135deg, var(--oro), var(--oro-chiaro)); color: var(--nero); padding: 14px 24px; border-radius: 100px; font-family: var(--display); font-size: 1.05rem; font-weight: 500; box-shadow: 0 20px 50px rgba(0,0,0,.5); opacity: 0; transition: opacity .35s, transform .45s ease; z-index: 300; pointer-events: none; white-space: nowrap; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <div class="login-box" id="loginView">
+    <p class="eyebrow">Area riservata</p>
+    <h1>Prenotazioni &amp; Tavoli</h1>
+    <label>Password
+      <input type="password" id="password" placeholder="••••••••" />
+    </label>
+    <button class="btn btn-gold full" id="btnLogin">Accedi</button>
+    <p class="msg error" id="loginMsg"></p>
+    <p style="margin-top:18px"><a href="index.html" class="back-link">← Torna al sito</a></p>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="wrap hidden" id="dashView">
+    <div class="topbar">
+      <div>
+        <p class="eyebrow">Bistrout &amp; Café Mozart</p>
+        <h1>Prenotazioni &amp; Tavoli</h1>
+      </div>
+      <div class="toolbar">
+        <input type="date" id="dataSel" />
+        <button class="btn btn-ghost" id="btnRefresh">Aggiorna</button>
+        <a href="admin.html" class="btn btn-ghost">Menu del Giorno</a>
+        <button class="btn btn-ghost" id="btnLogout">Esci</button>
+      </div>
+    </div>
+
+    <!-- Statistiche del giorno -->
+    <div class="stats" id="stats"></div>
+
+    <!-- Disponibilità per fascia oraria -->
+    <h2 class="sec-title">Disponibilità per fascia oraria <span style="font-size:.8rem;color:var(--grigio)">(20 posti per fascia)</span></h2>
+    <div class="slots" id="slots"></div>
+
+    <!-- Nuova prenotazione manuale -->
+    <button class="collapse-toggle" id="toggleNew">＋ Aggiungi prenotazione (telefonica / walk-in / manuale)</button>
+    <div class="new-resv hidden" id="newResvBox">
+      <h3>Nuova prenotazione</h3>
+      <p class="hint">Inserisci una prenotazione presa di persona o al telefono. Il telefono è facoltativo (utile per i walk-in).</p>
+      <div class="nr-grid">
+        <label>Nome *<input type="text" id="nrNome" maxlength="60" placeholder="Mario Rossi" /></label>
+        <label>Telefono<input type="tel" id="nrTel" placeholder="+39 333 1234567" /></label>
+        <label>Persone *<input type="number" id="nrPersone" min="1" max="20" value="2" /></label>
+        <label>Orario *<select id="nrOrario"></select></label>
+        <label>Origine<select id="nrOrigine">
+          <option value="telefonica">Telefonica</option>
+          <option value="walkin">Walk-in</option>
+          <option value="manuale">Manuale</option>
+        </select></label>
+        <label>Stato<select id="nrStato">
+          <option value="confermata">Confermata</option>
+          <option value="attesa">In attesa</option>
+        </select></label>
+        <label style="grid-column:1/-1">Note<input type="text" id="nrNote" maxlength="200" placeholder="Allergie, seggiolone, occasioni speciali…" /></label>
+      </div>
+      <div class="nr-foot">
+        <button class="btn btn-gold" id="btnCreaResv">Salva prenotazione</button>
+        <p class="msg" id="nrMsg"></p>
+      </div>
+    </div>
+
+    <!-- Filtri stato -->
+    <div class="tabs" id="tabs"></div>
+
+    <!-- Elenco prenotazioni -->
+    <div class="resv-grid" id="resvGrid"></div>
+
+    <!-- Firma easter egg -->
+    <p class="signature">Realizzato con <span class="secret" id="secretSign">&hearts;</span> da ziofabri &amp; Claude</p>
+  </div>
+
+  <!-- Modale conferma eliminazione -->
+  <div class="modal-bg" id="confirmModal">
+    <div class="modal">
+      <h3>Eliminare la prenotazione?</h3>
+      <p id="confirmText">L'azione è definitiva.</p>
+      <div class="row">
+        <button class="btn btn-ghost" id="confirmCancel">Annulla</button>
+        <button class="btn danger" id="confirmYes">Elimina</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modale modifica prenotazione -->
+  <div class="modal-bg" id="editModal">
+    <div class="modal" style="max-width:480px;text-align:left">
+      <h3 style="text-align:center">Modifica prenotazione</h3>
+      <div class="nr-grid">
+        <label>Nome *<input type="text" id="edNome" maxlength="60" /></label>
+        <label>Telefono<input type="tel" id="edTel" /></label>
+        <label>Persone *<input type="number" id="edPersone" min="1" max="20" /></label>
+        <label>Orario *<select id="edOrario"></select></label>
+        <label style="grid-column:1/-1">Note<input type="text" id="edNote" maxlength="200" /></label>
+      </div>
+      <p class="msg" id="edMsg" style="text-align:center;margin-top:10px"></p>
+      <div class="row" style="margin-top:18px">
+        <button class="btn btn-ghost" id="editCancel">Annulla</button>
+        <button class="btn btn-gold" id="editSave">Salva modifiche</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const STORAGE_KEY = 'mozartAdminPwd';
+    let adminPassword = sessionStorage.getItem(STORAGE_KEY) || '';
+
+    // Stato applicazione
+    let prenotazioni = [];
+    let CONFIG = { postiPerSlot: 20, slot: [], oggi: '' };
+    let disponibilita = [];
+    let dataCorrente = '';
+    let filtroStato = 'tutte';
+
+    const ETICHETTA_STATO = { attesa: 'In attesa', confermata: 'Confermata', rifiutata: 'Rifiutata', completata: 'Completata' };
+    const ETICHETTA_ORIGINE = { online: 'Online', telefonica: 'Telefonica', walkin: 'Walk-in', manuale: 'Manuale' };
+
+    function esc(s) { const d = document.createElement('div'); d.textContent = (s == null ? '' : s); return d.innerHTML; }
+
+    /* ---------- LOGIN ---------- */
+    async function tentaLogin(pwd) {
+      const res = await fetch('/api/admin/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ password: pwd }) });
+      return res.ok;
+    }
+    function entra() {
+      $('loginView').classList.add('hidden');
+      $('dashView').classList.remove('hidden');
+      const oggi = new Date(); const iso = new Date(oggi.getTime() - oggi.getTimezoneOffset()*60000).toISOString().split('T')[0];
+      dataCorrente = iso;
+      $('dataSel').value = iso;
+      carica();
+    }
+    function esci() {
+      sessionStorage.removeItem(STORAGE_KEY); adminPassword = '';
+      $('dashView').classList.add('hidden'); $('loginView').classList.remove('hidden');
+      $('password').value = '';
+    }
+
+    (async function initAuth(){
+      if (adminPassword && await tentaLogin(adminPassword)) entra();
+    })();
+
+    $('btnLogin').addEventListener('click', async () => {
+      const pwd = $('password').value.trim();
+      if (!pwd) return;
+      if (await tentaLogin(pwd)) { adminPassword = pwd; sessionStorage.setItem(STORAGE_KEY, pwd); entra(); }
+      else $('loginMsg').textContent = 'Password errata.';
+    });
+    $('password').addEventListener('keydown', e => { if (e.key === 'Enter') $('btnLogin').click(); });
+    $('btnLogout').addEventListener('click', esci);
+    $('btnRefresh').addEventListener('click', carica);
+    $('dataSel').addEventListener('change', () => { dataCorrente = $('dataSel').value; carica(); });
+
+    /* ---------- CARICAMENTO DATI ---------- */
+    async function carica() {
+      try {
+        const res = await fetch('/api/admin/prenotazioni?password=' + encodeURIComponent(adminPassword) + '&data=' + encodeURIComponent(dataCorrente));
+        if (res.status === 401) { esci(); return; }
+        const out = await res.json();
+        prenotazioni = out.prenotazioni || [];
+        CONFIG = out.config || CONFIG;
+        disponibilita = out.disponibilita || [];
+        popolaOrari();
+        render();
+      } catch (e) {
+        $('resvGrid').innerHTML = '<p class="empty">Impossibile caricare le prenotazioni.</p>';
+      }
+    }
+
+    function popolaOrari() {
+      const opts = (CONFIG.slot || []).map(o => `<option value="${o}">${o}</option>`).join('');
+      $('nrOrario').innerHTML = opts;
+      $('edOrario').innerHTML = opts;
+    }
+
+    /* ---------- RENDER ---------- */
+    function prenOfData() {
+      return prenotazioni.filter(p => p.data === dataCorrente);
+    }
+
+    function render() {
+      const lista = prenOfData();
+      const attive = lista.filter(p => p.stato === 'attesa' || p.stato === 'confermata');
+      const coperti = attive.reduce((s,p) => s + (Number(p.persone)||0), 0);
+
+      // Statistiche
+      const inAttesa = lista.filter(p => p.stato === 'attesa').length;
+      const confermate = lista.filter(p => p.stato === 'confermata').length;
+      const completate = lista.filter(p => p.stato === 'completata').length;
+      $('stats').innerHTML = `
+        <div class="stat"><b>${lista.length}</b><span>Prenotazioni totali</span></div>
+        <div class="stat"><b>${coperti}</b><span>Coperti attivi</span></div>
+        <div class="stat"><b>${inAttesa}</b><span>In attesa</span></div>
+        <div class="stat"><b>${confermate}</b><span>Confermate</span></div>
+        <div class="stat"><b>${completate}</b><span>Completate</span></div>`;
+
+      // Disponibilità per slot
+      $('slots').innerHTML = (disponibilita || []).map(s => {
+        const pct = Math.min(100, Math.round((s.occupati / CONFIG.postiPerSlot) * 100));
+        const pieno = s.liberi <= 0;
+        return `<div class="slot-card ${pieno?'pieno':''}">
+          <div class="ora">${s.orario}</div>
+          <div class="bar"><i style="width:${pct}%"></i></div>
+          <div class="info"><span>${s.occupati}/${CONFIG.postiPerSlot} occupati</span><b>${pieno ? 'esaurito' : s.liberi + ' liberi'}</b></div>
+        </div>`;
+      }).join('');
+
+      // Tabs
+      const conteggi = {
+        tutte: lista.length,
+        attesa: inAttesa,
+        confermata: confermate,
+        rifiutata: lista.filter(p=>p.stato==='rifiutata').length,
+        completata: completate
+      };
+      const tabDef = [['tutte','Tutte'],['attesa','In attesa'],['confermata','Confermate'],['rifiutata','Rifiutate'],['completata','Completate']];
+      $('tabs').innerHTML = tabDef.map(([k,label]) =>
+        `<button class="tab ${filtroStato===k?'active':''}" data-stato="${k}">${label} <span class="count">(${conteggi[k]||0})</span></button>`
+      ).join('');
+      $('tabs').querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => { filtroStato = t.dataset.stato; render(); }));
+
+      // Elenco prenotazioni
+      let visibili = lista.slice();
+      if (filtroStato !== 'tutte') visibili = visibili.filter(p => p.stato === filtroStato);
+      // Ordina per orario
+      visibili.sort((a,b) => (a.orario||'').localeCompare(b.orario||''));
+
+      if (!visibili.length) {
+        $('resvGrid').innerHTML = '<p class="empty">Nessuna prenotazione in questa categoria.</p>';
+        return;
+      }
+      $('resvGrid').innerHTML = '';
+      visibili.forEach(p => $('resvGrid').appendChild(creaCard(p)));
+    }
+
+    function creaCard(p) {
+      const card = document.createElement('div');
+      card.className = 'rcard st-' + (p.stato || 'attesa');
+
+      const piatti = (p.piatti && p.piatti.length)
+        ? `<div class="r-dishes"><ul>${p.piatti.map(d => `<li><span class="cat">${d.tipo === 'carta' ? 'Drink List' : 'Menu del Giorno'}</span> ${esc(d.nome)}</li>`).join('')}</ul></div>`
+        : `<div class="r-dishes"><span class="none">Nessuna pietanza selezionata</span></div>`;
+
+      const telLink = p.telefono ? `<a href="tel:${esc(p.telefono)}">${esc(p.telefono)}</a>` : '—';
+
+      card.innerHTML = `
+        <div class="r-head">
+          <div>
+            <div class="r-name">${esc(p.nome)}</div>
+            <span class="badge origine">${ETICHETTA_ORIGINE[p.origine] || 'Online'}</span>
+          </div>
+          <div class="badges">
+            <span class="badge persone">${p.persone} 👥</span>
+            <span class="badge st-${p.stato}">${ETICHETTA_STATO[p.stato] || p.stato}</span>
+          </div>
+        </div>
+        <div class="r-meta">
+          <span><span class="ico">🕐</span> ${esc(p.orario)} · ${esc(p.data)}</span>
+          <span><span class="ico">📞</span> ${telLink}</span>
+        </div>
+        ${piatti}
+        ${p.note ? `<div class="r-note">📝 ${esc(p.note)}</div>` : ''}
+        <div class="r-actions"></div>`;
+
+      const acts = card.querySelector('.r-actions');
+      // Pulsanti in base allo stato
+      if (p.stato === 'attesa') {
+        acts.appendChild(btn('ok-btn', '✓ Conferma', () => cambiaStato(p.id, 'confermata')));
+        acts.appendChild(btn('no-btn', '✕ Rifiuta', () => cambiaStato(p.id, 'rifiutata')));
+      }
+      if (p.stato === 'confermata') {
+        acts.appendChild(btn('done-btn', '✓ Completa', () => cambiaStato(p.id, 'completata')));
+        acts.appendChild(btn('no-btn', 'Rifiuta', () => cambiaStato(p.id, 'rifiutata')));
+      }
+      if (p.stato === 'rifiutata') {
+        acts.appendChild(btn('ok-btn', 'Rimetti in attesa', () => cambiaStato(p.id, 'attesa')));
+      }
+      acts.appendChild(btn('edit-btn', '✎ Modifica', () => apriModifica(p)));
+      acts.appendChild(btn('del-btn', '🗑', () => chiediElimina(p.id, p.nome)));
+
+      return card;
+    }
+    function btn(cls, label, onClick) {
+      const b = document.createElement('button'); b.className = cls; b.textContent = label;
+      b.addEventListener('click', onClick); return b;
+    }
+
+    /* ---------- CAMBIO STATO ---------- */
+    async function cambiaStato(id, stato) {
+      try {
+        const res = await fetch('/api/admin/prenotazioni/stato', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ password: adminPassword, id, stato })
+        });
+        const out = await res.json();
+        if (!out.ok) { mostraToast('Errore: ' + (out.messaggio||'')); return; }
+        const p = prenotazioni.find(x => String(x.id) === String(id));
+        if (p) p.stato = out.prenotazione.stato;
+        render();
+        // La notifica al cliente parte automaticamente dal server (Twilio).
+        if (out.notificaInviata) {
+          mostraToast('Stato aggiornato e cliente avvisato su WhatsApp.');
+        } else if (out.linkCliente) {
+          // Twilio non configurato: offriamo il link come ripiego manuale.
+          const msg = (stato === 'rifiutata')
+            ? 'Stato aggiornato. Invio automatico non attivo: vuoi inviare manualmente al cliente il messaggio con gli orari alternativi?'
+            : 'Stato aggiornato. Invio automatico non attivo: vuoi inviare manualmente il messaggio al cliente?';
+          if (confirm(msg)) window.open(out.linkCliente, '_blank', 'noopener');
+        } else {
+          mostraToast('Stato aggiornato: ' + ETICHETTA_STATO[stato]);
+        }
+      } catch { mostraToast('Errore di connessione.'); }
+    }
+
+    /* ---------- NUOVA PRENOTAZIONE MANUALE ---------- */
+    $('toggleNew').addEventListener('click', () => {
+      $('newResvBox').classList.toggle('hidden');
+    });
+    $('btnCreaResv').addEventListener('click', async () => {
+      const nome = $('nrNome').value.trim();
+      const persone = parseInt($('nrPersone').value, 10);
+      const orario = $('nrOrario').value;
+      const nrMsg = $('nrMsg');
+      nrMsg.textContent = '';
+      if (nome.length < 2) { nrMsg.textContent = 'Inserisci un nome valido.'; nrMsg.className = 'msg error'; return; }
+      if (!Number.isInteger(persone) || persone < 1) { nrMsg.textContent = 'Numero persone non valido.'; nrMsg.className = 'msg error'; return; }
+
+      const payload = {
+        password: adminPassword,
+        nome, telefono: $('nrTel').value.trim(),
+        persone, data: dataCorrente, orario,
+        note: $('nrNote').value.trim(),
+        origine: $('nrOrigine').value,
+        stato: $('nrStato').value
+      };
+      try {
+        let res = await fetch('/api/admin/prenotazioni/crea', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+        let out = await res.json();
+        if (!out.ok && out.codice === 'pieno') {
+          if (confirm(`${out.messaggio} Vuoi inserirla comunque (overbooking)?`)) {
+            payload.forza = true;
+            res = await fetch('/api/admin/prenotazioni/crea', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+            out = await res.json();
+          } else return;
+        }
+        if (out.ok) {
+          nrMsg.textContent = '✓ Prenotazione salvata.'; nrMsg.className = 'msg ok';
+          $('nrNome').value=''; $('nrTel').value=''; $('nrPersone').value=2; $('nrNote').value='';
+          carica();
+        } else { nrMsg.textContent = '✕ ' + (out.messaggio||'Errore.'); nrMsg.className = 'msg error'; }
+      } catch { nrMsg.textContent = '✕ Errore di connessione.'; nrMsg.className = 'msg error'; }
+    });
+
+    /* ---------- MODIFICA PRENOTAZIONE ---------- */
+    let editId = null;
+    function apriModifica(p) {
+      editId = p.id;
+      $('edNome').value = p.nome || '';
+      $('edTel').value = p.telefono || '';
+      $('edPersone').value = p.persone || 1;
+      $('edOrario').value = p.orario || '';
+      $('edNote').value = p.note || '';
+      $('edMsg').textContent = '';
+      $('editModal').classList.add('show');
+    }
+    $('editCancel').addEventListener('click', () => { $('editModal').classList.remove('show'); editId = null; });
+    $('editSave').addEventListener('click', async () => {
+      if (editId == null) return;
+      const payload = {
+        password: adminPassword, id: editId,
+        nome: $('edNome').value.trim(), telefono: $('edTel').value.trim(),
+        persone: parseInt($('edPersone').value, 10), orario: $('edOrario').value,
+        data: dataCorrente, note: $('edNote').value.trim()
+      };
+      try {
+        let res = await fetch('/api/admin/prenotazioni/modifica', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+        let out = await res.json();
+        if (!out.ok && out.codice === 'pieno') {
+          if (confirm(`${out.messaggio} Forzare comunque (overbooking)?`)) {
+            payload.forza = true;
+            res = await fetch('/api/admin/prenotazioni/modifica', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+            out = await res.json();
+          } else return;
+        }
+        if (out.ok) { $('editModal').classList.remove('show'); editId = null; carica(); mostraToast('Prenotazione aggiornata.'); }
+        else { $('edMsg').textContent = out.messaggio || 'Errore.'; $('edMsg').className = 'msg error'; }
+      } catch { $('edMsg').textContent = 'Errore di connessione.'; $('edMsg').className = 'msg error'; }
+    });
+
+    /* ---------- ELIMINAZIONE ---------- */
+    let idDaEliminare = null;
+    function chiediElimina(id, nome) {
+      idDaEliminare = id;
+      $('confirmText').textContent = `Eliminare definitivamente la prenotazione di "${nome}"?`;
+      $('confirmModal').classList.add('show');
+    }
+    $('confirmCancel').addEventListener('click', () => { $('confirmModal').classList.remove('show'); idDaEliminare = null; });
+    $('confirmYes').addEventListener('click', async () => {
+      if (idDaEliminare == null) return;
+      const id = idDaEliminare; idDaEliminare = null;
+      $('confirmModal').classList.remove('show');
+      try {
+        const res = await fetch('/api/admin/prenotazioni/elimina', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ password: adminPassword, id }) });
+        const out = await res.json();
+        if (out.ok) { prenotazioni = prenotazioni.filter(x => String(x.id) !== String(id)); render(); mostraToast('Prenotazione eliminata.'); }
+      } catch { mostraToast('Errore di connessione.'); }
+    });
+
+    /* ---------- TOAST + EASTER EGG ---------- */
+    function mostraToast(testo) {
+      const t = $('toast'); t.textContent = testo; t.classList.add('show');
+      clearTimeout(mostraToast._t); mostraToast._t = setTimeout(() => t.classList.remove('show'), 2600);
+    }
+    $('secretSign').addEventListener('click', () => mostraToast('🥂 Alla salute, ziofabri!'));
+
+    // Konami code -> ziofabri mode
+    const KONAMI = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+    let konamiPos = 0;
+    document.addEventListener('keydown', (e) => {
+      konamiPos = (e.key === KONAMI[konamiPos]) ? konamiPos + 1 : 0;
+      if (konamiPos === KONAMI.length) { konamiPos = 0; document.body.classList.toggle('ziofabri-mode'); mostraToast('✨ ziofabri-mode attivata!'); }
+    });
+  </script>
+</body>
+</html>

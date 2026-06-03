@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Area Admin — Bistrout &amp; Café Mozart</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* Stili specifici della pagina admin — layout largo come la dashboard prenotazioni */
+    body { min-height: 100vh; padding: 28px 0 60px; }
+    .wrap { width: 92%; max-width: 1180px; margin: 0 auto; position: relative; z-index: 1; }
+
+    /* LOGIN: card centrata e stretta */
+    .login-box {
+      max-width: 460px; margin: 8vh auto 0;
+      background: var(--nero-card); border: 1px solid var(--bordo);
+      border-radius: var(--radius); padding: 44px;
+    }
+    .login-box .eyebrow { margin-bottom: 18px; }
+    .login-box h1 { font-size: 1.9rem; color: var(--crema); margin-bottom: 6px; }
+    .login-box label { display: flex; flex-direction: column; gap: 8px; font-size: .82rem; color: var(--grigio); margin: 14px 0 18px; letter-spacing: .5px; }
+    .login-box input { background: var(--nero); border: 1px solid var(--bordo); border-radius: 10px; padding: 13px 15px; color: var(--crema); font-family: var(--body); font-size: .95rem; width: 100%; }
+    .login-box input:focus { outline: none; border-color: var(--oro); }
+
+    /* TOPBAR (come dashboard prenotazioni) */
+    .topbar { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .topbar h1 { font-family: var(--display); font-size: 2rem; color: var(--crema); }
+    .topbar .eyebrow { margin-bottom: 4px; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .toolbar .btn { font-size: .76rem; padding: 10px 18px; }
+
+    /* GRIGLIA del pannello: form a sinistra, elenco a destra */
+    .admin-grid { display: grid; grid-template-columns: 360px 1fr; gap: 22px; align-items: start; }
+    .panel-card { background: var(--nero-card); border: 1px solid var(--bordo); border-radius: var(--radius); padding: 24px; }
+    .panel-card h2 { font-family: var(--display); color: var(--crema); font-size: 1.4rem; margin-bottom: 6px; }
+    .panel-card h3 { font-family: var(--display); color: var(--oro); font-size: 1.25rem; margin-bottom: 12px; }
+    .panel-card.sticky { position: sticky; top: 24px; }
+
+    /* Form di aggiunta / campi */
+    label.fld { display: flex; flex-direction: column; gap: 8px; font-size: .8rem; color: var(--grigio); margin-bottom: 14px; letter-spacing: .4px; }
+    .panel-card input[type="text"], .panel-card input[type="number"],
+    .panel-card input[type="file"] {
+      background: var(--nero); border: 1px solid var(--bordo); border-radius: 10px;
+      padding: 12px 14px; color: var(--crema); font-family: var(--body); font-size: .92rem; width: 100%;
+    }
+    .panel-card input:focus { outline: none; border-color: var(--oro); }
+    .hidden { display: none !important; }
+    .msg { text-align: center; font-size: .9rem; margin-top: 14px; min-height: 1em; }
+    .msg.ok { color: var(--oro-chiaro); }
+    .msg.error { color: #e08a7a; }
+    .hint { font-size: .8rem; color: var(--grigio); margin-bottom: 16px; line-height: 1.5; }
+
+    /* Lista piatti: griglia di card */
+    .piatti-empty { color: var(--grigio); font-style: italic; padding: 10px 0; }
+    #listaPiatti { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 12px; }
+    .dish-row {
+      background: var(--nero); border: 1px solid var(--bordo); border-radius: 12px;
+      padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;
+    }
+    .dish-row .info { flex: 1; min-width: 0; }
+    .dish-row .nome { color: var(--crema); font-weight: 500; margin-bottom: 3px; }
+    .dish-row .nome::before { content: "✦  "; color: var(--oro); }
+    .dish-row .desc { color: var(--grigio); font-size: .84rem; font-style: italic; }
+    .dish-row .desc:empty { display: none; }
+    .dish-row .acts { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .dish-row .acts button {
+      background: var(--nero-card); border: 1px solid var(--bordo);
+      color: var(--crema); font-family: var(--body); font-size: .82rem;
+      padding: 8px 12px; border-radius: 8px; cursor: pointer; transition: all .25s;
+    }
+    .dish-row .acts .edit:hover { border-color: var(--oro); color: var(--oro); }
+    .dish-row .acts .del:hover { border-color: #c0584a; color: #e08a7a; }
+    .dish-row.editing { border-color: var(--oro); }
+    .dish-row.editing .info { display: flex; flex-direction: column; gap: 8px; }
+    .dish-row.editing input { background: var(--nero-card); border: 1px solid var(--bordo); border-radius: 8px; padding: 9px 11px; color: var(--crema); font-family: var(--body); font-size: .9rem; width: 100%; }
+    .dish-row.editing input:focus { outline: none; border-color: var(--oro); }
+    .dish-row.editing .acts .edit { border-color: var(--oro); color: var(--oro); }
+    /* Stati piatto */
+    .dish-row .dish-prezzo { color: var(--oro); font-weight: 600; font-size: .9rem; margin-left: 4px; }
+    .stato-badge { display: inline-block; font-size: .68rem; text-transform: uppercase; letter-spacing: .5px; padding: 2px 8px; border-radius: 100px; margin-left: 6px; vertical-align: middle; }
+    .stato-badge.visibile { background: rgba(120,180,120,.15); color: #8fc98f; border: 1px solid rgba(120,180,120,.3); }
+    .stato-badge.nascosto { background: rgba(150,150,150,.12); color: #aaa; border: 1px solid rgba(150,150,150,.25); }
+    .stato-badge.esaurito { background: rgba(224,138,122,.12); color: #e08a7a; border: 1px solid rgba(224,138,122,.3); }
+    .dish-row.stato-nascosto { opacity: .6; }
+    .dish-row.stato-esaurito .nome { text-decoration: line-through; text-decoration-color: rgba(224,138,122,.6); }
+    .stato-sel { background: var(--nero-card); border: 1px solid var(--bordo); color: var(--crema); font-family: var(--body); font-size: .78rem; padding: 8px; border-radius: 8px; cursor: pointer; flex: 1; min-width: 110px; }
+    .stato-sel:focus { outline: none; border-color: var(--oro); }
+
+    /* Sezione PDF a larghezza piena sotto la griglia */
+    .pdf-section { margin-top: 22px; }
+
+    /* Modale conferma */
+    .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.7); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
+    .modal-bg.show { display: flex; }
+    .modal { background: var(--nero-card); border: 1px solid var(--bordo); border-radius: var(--radius); padding: 32px; max-width: 400px; text-align: center; }
+    .modal h3 { font-family: var(--display); color: var(--crema); font-size: 1.5rem; margin-bottom: 10px; }
+    .modal p { color: var(--grigio); font-size: .9rem; margin-bottom: 22px; }
+    .modal .row { display: flex; gap: 10px; }
+    .modal .row .btn { flex: 1; }
+    .danger { background: #c0584a !important; color: #fff !important; box-shadow: none !important; }
+
+    .back-link { display: inline-block; margin-top: 24px; color: var(--oro); font-size: .85rem; }
+
+    @media (max-width: 860px) {
+      .admin-grid { grid-template-columns: 1fr; }
+      .panel-card.sticky { position: static; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- FASE 1: LOGIN (card centrata) -->
+  <div class="login-box" id="loginView">
+    <p class="eyebrow">Area riservata</p>
+    <h1>Gestione Menu del Giorno</h1>
+    <p class="hint">Inserisci la password del proprietario per continuare.</p>
+    <label>Password
+      <input type="password" id="password" placeholder="••••••••" />
+    </label>
+    <button class="btn btn-gold full" id="btnLogin">Accedi</button>
+    <p class="msg" id="loginMsg"></p>
+    <p style="margin-top:18px"><a href="index.html" class="back-link">← Torna al sito</a></p>
+  </div>
+
+  <!-- FASE 2: PANNELLO (largo, stile dashboard) -->
+  <div class="wrap hidden" id="panelView">
+    <div class="topbar">
+      <div>
+        <p class="eyebrow">Bistrout &amp; Café Mozart</p>
+        <h1>Gestione Menu del Giorno</h1>
+      </div>
+      <div class="toolbar">
+        <a href="prenotazioni.html" class="btn btn-ghost">Prenotazioni &amp; Tavoli</a>
+        <a href="index.html" class="btn btn-ghost">Vedi il sito</a>
+        <button class="btn btn-ghost" id="btnLogout">Esci</button>
+      </div>
+    </div>
+
+    <div class="admin-grid">
+      <!-- Colonna sinistra: form di aggiunta (sticky) -->
+      <div class="panel-card sticky">
+        <h3>Aggiungi un piatto</h3>
+        <p class="hint">Nome obbligatorio; descrizione e prezzo facoltativi. Salvataggio immediato.</p>
+        <label class="fld">Nome del piatto *
+          <input type="text" id="dishNome" maxlength="80" placeholder="Es. Lasagna al forno" />
+        </label>
+        <label class="fld">Descrizione (facoltativa)
+          <input type="text" id="dishDesc" maxlength="200" placeholder="Es. Pasta fresca e ragù" />
+        </label>
+        <label class="fld">Prezzo in € (facoltativo)
+          <input type="number" id="dishPrezzo" min="0" max="999" step="0.50" placeholder="Es. 11" />
+        </label>
+        <button class="btn btn-gold full" id="btnAddDish">+ Aggiungi piatto</button>
+        <p class="msg" id="dishMsg"></p>
+      </div>
+
+      <!-- Colonna destra: elenco piatti -->
+      <div class="panel-card">
+        <h3>Piatti registrati</h3>
+        <p class="hint">I piatti <strong>nascosti</strong> restano salvati ma non compaiono sul sito. Quelli <strong>esauriti</strong> appaiono barrati con l'etichetta "Esaurito".</p>
+        <div id="listaPiatti"><p class="piatti-empty">Caricamento…</p></div>
+      </div>
+    </div>
+
+    <!-- Drink List PDF (larghezza piena) -->
+    <div class="panel-card pdf-section">
+      <h3>Drink List (PDF)</h3>
+      <p class="hint">Carica un file <strong>.pdf</strong> con la Drink List completa. Sostituirà quella attuale.</p>
+      <label class="fld">File menu (.pdf)
+        <input type="file" id="menuInput" accept="application/pdf,.pdf" />
+      </label>
+      <button class="btn btn-gold" id="btnMenu">Carica / aggiorna Drink List</button>
+      <p class="msg" id="menuMsg"></p>
+      <p id="menuStato" style="font-size:.85rem;color:var(--grigio);margin-top:10px;"></p>
+    </div>
+
+    <p style="margin-top:8px"><a href="index.html" class="back-link">← Torna al sito</a></p>
+  </div>
+
+  <!-- Modale conferma eliminazione piatto -->
+  <div class="modal-bg" id="confirmModal">
+    <div class="modal">
+      <h3>Eliminare il piatto?</h3>
+      <p id="confirmText">L'azione è definitiva.</p>
+      <div class="row">
+        <button class="btn btn-ghost" id="confirmCancel">Annulla</button>
+        <button class="btn danger" id="confirmYes">Elimina</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Conserva la password in memoria solo durante la sessione della pagina
+    /* Password ricordata per la sessione (sessionStorage). */
+    const STORAGE_KEY = 'mozartAdminPwd';
+    let adminPassword = sessionStorage.getItem(STORAGE_KEY) || '';
+
+    const loginView  = document.getElementById('loginView');
+    const panelView  = document.getElementById('panelView');
+    const loginMsg   = document.getElementById('loginMsg');
+    const listaPiatti = document.getElementById('listaPiatti');
+    const dishMsg = document.getElementById('dishMsg');
+
+    function entraNelPannello() {
+      loginView.classList.add('hidden');
+      panelView.classList.remove('hidden');
+      caricaPiatti();
+      aggiornaStatoMenu();
+    }
+
+    /* ----- Logout ----- */
+    document.getElementById('btnLogout').addEventListener('click', () => {
+      sessionStorage.removeItem(STORAGE_KEY);
+      adminPassword = '';
+      panelView.classList.add('hidden');
+      loginView.classList.remove('hidden');
+      document.getElementById('password').value = '';
+    });
+
+    /* Login automatico se la password è già in sessione */
+    if (adminPassword) {
+      fetch('/api/admin/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ password: adminPassword }) })
+        .then(r => r.json()).then(out => { if (out.ok) entraNelPannello(); else sessionStorage.removeItem(STORAGE_KEY); })
+        .catch(() => {});
+    }
+
+    /* ----- Login ----- */
+    document.getElementById('btnLogin').addEventListener('click', async () => {
+      const pwd = document.getElementById('password').value;
+      loginMsg.textContent = 'Verifica…';
+      loginMsg.className = 'msg';
+      try {
+        const res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pwd })
+        });
+        const out = await res.json();
+        if (out.ok) {
+          adminPassword = pwd;
+          sessionStorage.setItem(STORAGE_KEY, pwd);
+          entraNelPannello();
+        } else {
+          loginMsg.textContent = out.messaggio || 'Password errata.';
+          loginMsg.className = 'msg error';
+        }
+      } catch {
+        loginMsg.textContent = 'Errore di connessione.';
+        loginMsg.className = 'msg error';
+      }
+    });
+
+    // Invio con tasto Enter
+    document.getElementById('password').addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('btnLogin').click();
+    });
+
+    /* ============================================================
+       GESTIONE PIATTI DEL GIORNO (aggiungi / modifica / elimina)
+       ============================================================ */
+
+    function showMsg(msg, ok) {
+      dishMsg.textContent = (ok ? '✓ ' : '✕ ') + msg;
+      dishMsg.className = 'msg ' + (ok ? 'ok' : 'error');
+      // Pulisce il messaggio dopo qualche secondo
+      clearTimeout(showMsg._t);
+      showMsg._t = setTimeout(() => { dishMsg.textContent = ''; dishMsg.className = 'msg'; }, 3500);
+    }
+
+    /* ----- Caricamento iniziale (admin: include i piatti nascosti) ----- */
+    function caricaPiatti() {
+      fetch('/api/admin/piatti?password=' + encodeURIComponent(adminPassword))
+        .then(r => r.json())
+        .then(d => mostraPiatti(d.piatti || []))
+        .catch(() => { listaPiatti.innerHTML = '<p class="piatti-empty">Impossibile caricare i piatti.</p>'; });
+    }
+
+    function esc(s) { const d = document.createElement('div'); d.textContent = (s == null ? '' : s); return d.innerHTML; }
+    function fmtPrezzo(p) {
+      if (p === null || p === undefined || p === '') return '';
+      return '€ ' + Number(p).toFixed(2).replace('.', ',');
+    }
+    const ETICHETTA_STATO = { visibile: 'Visibile', nascosto: 'Nascosto', esaurito: 'Esaurito' };
+
+    /* ----- Render dell'elenco con prezzo, stato e azioni ----- */
+    function mostraPiatti(piatti) {
+      if (!piatti || piatti.length === 0) {
+        listaPiatti.innerHTML = '<p class="piatti-empty">Nessun piatto impostato. Aggiungine uno qui sopra.</p>';
+        return;
+      }
+      listaPiatti.innerHTML = '';
+      piatti.forEach((p, i) => {
+        const nome = (typeof p === 'string') ? p : (p && p.nome) || '';
+        const desc = (p && p.descrizione) ? p.descrizione : '';
+        const prezzo = (p && p.prezzo !== undefined) ? p.prezzo : null;
+        const stato = (p && p.stato) ? p.stato : 'visibile';
+
+        const row = document.createElement('div');
+        row.className = 'dish-row stato-' + stato;
+        row.dataset.indice = i;
+        const prezzoHtml = fmtPrezzo(prezzo) ? `<span class="dish-prezzo">${fmtPrezzo(prezzo)}</span>` : '';
+        row.innerHTML = `
+          <div class="info">
+            <div class="nome">${esc(nome)} ${prezzoHtml}<span class="stato-badge ${stato}">${ETICHETTA_STATO[stato]}</span></div>
+            <div class="desc">${esc(desc)}</div>
+          </div>
+          <div class="acts">
+            <select class="stato-sel" title="Stato del piatto">
+              <option value="visibile" ${stato==='visibile'?'selected':''}>Visibile</option>
+              <option value="nascosto" ${stato==='nascosto'?'selected':''}>Nascosto</option>
+              <option value="esaurito" ${stato==='esaurito'?'selected':''}>Esaurito</option>
+            </select>
+            <button class="edit" title="Modifica">✎</button>
+            <button class="del" title="Elimina">🗑</button>
+          </div>`;
+
+        row.querySelector('.stato-sel').addEventListener('change', (e) => cambiaStato(i, e.target.value));
+        row.querySelector('.edit').addEventListener('click', () => entraInModifica(row, nome, desc, prezzo, i));
+        row.querySelector('.del').addEventListener('click', () => chiediEliminaPiatto(i, nome));
+        listaPiatti.appendChild(row);
+      });
+    }
+
+    /* ----- Cambio stato (Visibile / Nascosto / Esaurito) ----- */
+    async function cambiaStato(indice, stato) {
+      try {
+        const res = await fetch('/api/admin/piatti/stato', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: adminPassword, indice, stato })
+        });
+        const out = await res.json();
+        if (out.ok) { showMsg('Stato aggiornato: ' + ETICHETTA_STATO[stato] + '.', true); mostraPiatti(out.piatti); }
+        else showMsg(out.messaggio || 'Errore.', false);
+      } catch { showMsg('Errore di connessione.', false); }
+    }
+
+    /* ----- Modifica inline (nome, descrizione, prezzo) ----- */
+    function entraInModifica(row, nome, desc, prezzo, indice) {
+      const altra = listaPiatti.querySelector('.dish-row.editing');
+      if (altra && altra !== row) caricaPiatti();
+      row.classList.add('editing');
+      row.innerHTML = `
+        <div class="info">
+          <input type="text" class="ed-nome" maxlength="80" value="${esc(nome)}" placeholder="Nome del piatto" />
+          <input type="text" class="ed-desc" maxlength="200" value="${esc(desc)}" placeholder="Descrizione (facoltativa)" />
+          <input type="number" class="ed-prezzo" min="0" max="999" step="0.50" value="${prezzo !== null && prezzo !== undefined ? prezzo : ''}" placeholder="Prezzo € (facoltativo)" />
+        </div>
+        <div class="acts">
+          <button class="edit save" title="Salva">✓</button>
+          <button class="del cancel" title="Annulla">✕</button>
+        </div>`;
+      const inputNome = row.querySelector('.ed-nome');
+      const inputDesc = row.querySelector('.ed-desc');
+      const inputPrezzo = row.querySelector('.ed-prezzo');
+      inputNome.focus(); inputNome.select();
+
+      const salva = () => salvaModifica(indice, inputNome.value, inputDesc.value, inputPrezzo.value);
+      row.querySelector('.save').addEventListener('click', salva);
+      row.querySelector('.cancel').addEventListener('click', caricaPiatti);
+      [inputNome, inputDesc, inputPrezzo].forEach(inp => inp.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); salva(); }
+        if (e.key === 'Escape') caricaPiatti();
+      }));
+    }
+
+    async function salvaModifica(indice, nome, descrizione, prezzo) {
+      const n = (nome || '').trim();
+      if (n.length < 2) { showMsg('Il nome del piatto è obbligatorio (min. 2 caratteri).', false); return; }
+      const piatto = { nome: n, descrizione: (descrizione || '').trim() };
+      if (prezzo !== '' && prezzo !== null && prezzo !== undefined) piatto.prezzo = Number(prezzo);
+      try {
+        const res = await fetch('/api/admin/piatti/modifica', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: adminPassword, indice, piatto })
+        });
+        const out = await res.json();
+        if (out.ok) { showMsg('Piatto aggiornato.', true); mostraPiatti(out.piatti); }
+        else showMsg(out.messaggio || 'Errore nel salvataggio.', false);
+      } catch { showMsg('Errore di connessione.', false); }
+    }
+
+    /* ----- Eliminazione con conferma ----- */
+    let pendingDelete = null;
+    function chiediEliminaPiatto(indice, nome) {
+      pendingDelete = indice;
+      document.getElementById('confirmText').textContent = `Eliminare definitivamente "${nome}"?`;
+      document.getElementById('confirmModal').classList.add('show');
+    }
+    document.getElementById('confirmCancel').addEventListener('click', () => {
+      document.getElementById('confirmModal').classList.remove('show');
+      pendingDelete = null;
+    });
+    document.getElementById('confirmYes').addEventListener('click', async () => {
+      if (pendingDelete == null) return;
+      const indice = pendingDelete; pendingDelete = null;
+      document.getElementById('confirmModal').classList.remove('show');
+      try {
+        const res = await fetch('/api/admin/piatti/elimina', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: adminPassword, indice })
+        });
+        const out = await res.json();
+        if (out.ok) { showMsg('Piatto eliminato.', true); mostraPiatti(out.piatti); }
+        else showMsg(out.messaggio || 'Errore.', false);
+      } catch { showMsg('Errore di connessione.', false); }
+    });
+
+    /* ----- Aggiunta di un nuovo piatto (nome, descrizione, prezzo) ----- */
+    const inputNome = document.getElementById('dishNome');
+    const inputDesc = document.getElementById('dishDesc');
+    const inputPrezzo = document.getElementById('dishPrezzo');
+    async function aggiungiPiatto() {
+      const nome = inputNome.value.trim();
+      const descrizione = inputDesc.value.trim();
+      const prezzo = inputPrezzo.value;
+      if (nome.length < 2) { showMsg('Il nome del piatto è obbligatorio (min. 2 caratteri).', false); inputNome.focus(); return; }
+      const piatto = { nome, descrizione, stato: 'visibile' };
+      if (prezzo !== '' && prezzo !== null) piatto.prezzo = Number(prezzo);
+      try {
+        const res = await fetch('/api/admin/piatti/aggiungi', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: adminPassword, piatto })
+        });
+        const out = await res.json();
+        if (out.ok) {
+          showMsg('Piatto aggiunto.', true);
+          mostraPiatti(out.piatti);
+          inputNome.value = ''; inputDesc.value = ''; inputPrezzo.value = ''; inputNome.focus();
+        } else showMsg(out.messaggio || 'Errore.', false);
+      } catch { showMsg('Errore di connessione.', false); }
+    }
+    document.getElementById('btnAddDish').addEventListener('click', aggiungiPiatto);
+    [inputNome, inputDesc, inputPrezzo].forEach(inp => inp.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); aggiungiPiatto(); }
+    }));
+
+    /* ----- Menu PDF: stato e caricamento ----- */
+    const menuMsg = document.getElementById('menuMsg');
+    const menuStato = document.getElementById('menuStato');
+
+    function aggiornaStatoMenu() {
+      fetch('/api/menu')
+        .then(r => r.json())
+        .then(({ disponibile }) => {
+          menuStato.innerHTML = disponibile
+            ? 'Menu attuale: <a href="/menu.pdf" target="_blank" style="color:var(--oro)">visualizza PDF</a>'
+            : 'Nessun menu PDF caricato.';
+        })
+        .catch(() => { menuStato.textContent = ''; });
+    }
+
+    document.getElementById('btnMenu').addEventListener('click', async () => {
+      const file = document.getElementById('menuInput').files[0];
+      if (!file) {
+        menuMsg.textContent = 'Seleziona prima un file .pdf';
+        menuMsg.className = 'msg error';
+        return;
+      }
+      menuMsg.textContent = 'Caricamento…';
+      menuMsg.className = 'msg';
+
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('password', adminPassword);
+
+      try {
+        const res = await fetch('/api/admin/menu', { method: 'POST', body: fd });
+        const out = await res.json();
+        if (out.ok) {
+          menuMsg.textContent = '✓ ' + out.messaggio;
+          menuMsg.className = 'msg ok';
+          aggiornaStatoMenu();
+        } else {
+          menuMsg.textContent = '✕ ' + (out.messaggio || 'Errore nel caricamento.');
+          menuMsg.className = 'msg error';
+        }
+      } catch {
+        menuMsg.textContent = '✕ Errore di connessione.';
+        menuMsg.className = 'msg error';
+      }
+    });
+  </script>
+</body>
+</html>

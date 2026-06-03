@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cucina — Bistrout &amp; Café Mozart</title>
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ============================================================
+       KITCHEN DISPLAY — Bistrout & Café Mozart
+       ============================================================ */
+    :root {
+      --carta:        #f5ecd7;   /* avorio carta termica */
+      --carta-2:      #ebe1c8;
+      --carta-old:    #d8cba8;   /* tono invecchiato */
+      --inchiostro:   #1a1812;   /* nero/marrone scuro */
+      --grigio-scuro: #4a463d;
+      --grigio:       #8a8478;
+      --bg:           #1c1a16;   /* sfondo cucina, scuro per ridurre fatica visiva */
+      --bg-2:         #252118;
+      --st-nuova:     #e8b34a;
+      --st-prep:      #5aa6e3;
+      --st-pronta:    #6cc06c;
+      --st-conseg:    #8a8478;
+      --rosso:        #c0584a;
+      --body: 'Manrope', system-ui, -apple-system, sans-serif;
+      --ticket: 'Special Elite', 'Courier New', Courier, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: var(--bg); color: #e9e2cf; font-family: var(--body); min-height: 100vh; }
+    body { padding: 0; }
+
+    /* LOGIN */
+    .login {
+      max-width: 420px; margin: 12vh auto 0;
+      background: #25211a; border: 1px solid #3a3527; border-radius: 14px; padding: 36px;
+    }
+    .login h1 { font-family: var(--ticket); font-size: 1.6rem; color: var(--carta); margin-bottom: 6px; }
+    .login p.sub { color: #a39c8f; font-size: .88rem; margin-bottom: 16px; }
+    .login label { display: block; font-size: .8rem; color: #a39c8f; letter-spacing: .5px; margin: 12px 0 6px; }
+    .login input { width: 100%; background: #1c1a14; border: 1px solid #3a3527; border-radius: 8px; padding: 12px 14px; color: #e9e2cf; font-family: var(--body); font-size: .95rem; }
+    .login input:focus { outline: none; border-color: var(--st-nuova); }
+    .login button { width: 100%; margin-top: 16px; padding: 13px; background: var(--st-nuova); color: #1c1a14; border: none; border-radius: 100px; cursor: pointer; font-family: var(--body); font-weight: 700; font-size: .85rem; letter-spacing: 1.2px; text-transform: uppercase; transition: filter .2s; }
+    .login button:hover { filter: brightness(1.1); }
+    .login .msg { margin-top: 12px; color: var(--rosso); font-size: .85rem; min-height: 1em; text-align: center; }
+
+    /* TOPBAR */
+    .topbar {
+      position: sticky; top: 0; z-index: 20;
+      background: rgba(28,26,22,.96); backdrop-filter: blur(10px);
+      border-bottom: 1px solid #3a3527;
+      padding: 14px 22px;
+      display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between;
+    }
+    .topbar h1 { font-family: var(--ticket); font-size: 1.5rem; color: var(--carta); letter-spacing: 1px; }
+    .topbar .now { font-family: var(--ticket); color: var(--st-nuova); font-size: 1.4rem; min-width: 80px; text-align: center; }
+
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .controls .ctrl-btn, .controls input, .controls select {
+      background: #2a2620; border: 1px solid #3a3527; color: #e9e2cf;
+      font-family: var(--body); font-size: .82rem; padding: 8px 14px; border-radius: 100px; cursor: pointer;
+      transition: all .25s;
+    }
+    .controls .ctrl-btn:hover { border-color: var(--st-nuova); color: var(--st-nuova); }
+    .controls input[type="search"] { width: 140px; cursor: text; }
+    .controls input:focus, .controls select:focus { outline: none; border-color: var(--st-nuova); }
+    .filters { display: flex; gap: 6px; flex-wrap: wrap; }
+    .filter { font-size: .76rem; padding: 7px 14px; }
+    .filter.active { background: var(--st-nuova); border-color: var(--st-nuova); color: #1c1a14; font-weight: 600; }
+    .filter .count { opacity: .7; margin-left: 4px; }
+
+    /* AREA COMANDE */
+    .board {
+      padding: 26px 22px;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 26px;
+    }
+    .empty {
+      grid-column: 1 / -1; text-align: center; padding: 80px 20px;
+      color: #6a6457; font-family: var(--ticket); font-size: 1.4rem; letter-spacing: 1px;
+    }
+
+    /* TICKET — il foglietto di carta */
+    .ticket {
+      position: relative;
+      background: var(--carta);
+      color: var(--inchiostro);
+      font-family: var(--ticket);
+      padding: 20px 22px 26px;
+      box-shadow:
+        0 18px 30px -10px rgba(0,0,0,.6),
+        0 4px 10px rgba(0,0,0,.3),
+        inset 0 0 60px rgba(120,90,40,.08);
+      /* Bordo zig-zag tipo scontrino strappato sopra e sotto */
+      clip-path: polygon(
+        0 6px, 4% 0, 8% 6px, 12% 0, 16% 6px, 20% 0, 24% 6px, 28% 0, 32% 6px, 36% 0, 40% 6px, 44% 0, 48% 6px, 52% 0, 56% 6px, 60% 0, 64% 6px, 68% 0, 72% 6px, 76% 0, 80% 6px, 84% 0, 88% 6px, 92% 0, 96% 6px, 100% 0,
+        100% calc(100% - 6px), 96% 100%, 92% calc(100% - 6px), 88% 100%, 84% calc(100% - 6px), 80% 100%, 76% calc(100% - 6px), 72% 100%, 68% calc(100% - 6px), 64% 100%, 60% calc(100% - 6px), 56% 100%, 52% calc(100% - 6px), 48% 100%, 44% calc(100% - 6px), 40% 100%, 36% calc(100% - 6px), 32% 100%, 28% calc(100% - 6px), 24% 100%, 20% calc(100% - 6px), 16% 100%, 12% calc(100% - 6px), 8% 100%, 4% calc(100% - 6px), 0 100%
+      );
+      transition: transform .25s ease, box-shadow .25s ease;
+    }
+    .ticket:hover { transform: translateY(-3px) rotate(0deg) !important; box-shadow: 0 24px 40px -10px rgba(0,0,0,.7), 0 6px 14px rgba(0,0,0,.35); }
+
+    /* Striscia colorata laterale per riconoscimento rapido dello stato */
+    .ticket::before {
+      content: ''; position: absolute; left: 0; top: 6px; bottom: 6px; width: 6px;
+      background: var(--stato-color, var(--st-nuova));
+    }
+
+    /* Stati */
+    .ticket.st-nuova            { --stato-color: var(--st-nuova); }
+    .ticket.st-in_preparazione  { --stato-color: var(--st-prep); }
+    .ticket.st-pronta           { --stato-color: var(--st-pronta); }
+    .ticket.st-consegnata       { --stato-color: var(--st-conseg); opacity: .55; }
+
+    /* Header del ticket: numero tavolo grande */
+    .t-head { text-align: center; border-bottom: 2px dashed var(--grigio-scuro); padding-bottom: 12px; margin-bottom: 12px; }
+    .t-head .tag { font-size: .82rem; color: var(--grigio-scuro); letter-spacing: 2px; text-transform: uppercase; }
+    .t-head .tavolo { font-size: 2.6rem; line-height: 1; color: var(--inchiostro); font-weight: bold; margin: 4px 0 6px; }
+    .t-head .meta { font-size: 1rem; color: var(--grigio-scuro); display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
+    .t-head .meta b { color: var(--inchiostro); }
+    .t-head .cliente { font-size: 1.05rem; color: var(--inchiostro); margin-top: 6px; font-style: italic; }
+
+    /* Lista pietanze */
+    .t-piatti { font-size: 1.18rem; line-height: 1.55; }
+    .t-piatti ul { list-style: none; }
+    .t-piatti li { display: flex; gap: 10px; padding: 3px 0; }
+    .t-piatti li .qty { font-weight: bold; color: var(--inchiostro); min-width: 28px; font-size: 1.25rem; }
+    .t-piatti li .nome { flex: 1; color: var(--inchiostro); }
+    .t-piatti .vuoto { color: var(--grigio); font-style: italic; font-size: .98rem; }
+
+    /* Note e allergie */
+    .t-note { margin-top: 14px; padding-top: 12px; border-top: 2px dashed var(--grigio-scuro); font-size: 1rem; }
+    .t-note .lbl { font-size: .78rem; letter-spacing: 1.5px; color: var(--grigio-scuro); text-transform: uppercase; margin-bottom: 4px; }
+    .t-note .testo { color: var(--inchiostro); }
+    .t-note.alert { background: rgba(192,88,74,.12); padding: 10px 12px; border-radius: 6px; border-top: none; margin-top: 12px; }
+    .t-note.alert .lbl { color: var(--rosso); }
+    .t-note.alert .testo { color: var(--rosso); font-weight: bold; }
+
+    /* Timer (minuti in attesa) */
+    .t-timer { margin-top: 14px; padding-top: 10px; border-top: 1px dotted var(--grigio); display: flex; justify-content: space-between; align-items: baseline; font-size: .92rem; color: var(--grigio-scuro); }
+    .t-timer .min { font-family: var(--ticket); font-size: 1.4rem; color: var(--inchiostro); }
+    .ticket.urgente .t-timer .min { color: var(--rosso); animation: pulseRed 1s ease-in-out infinite; }
+    .ticket.urgente { box-shadow: 0 0 0 3px var(--rosso), 0 18px 30px -10px rgba(0,0,0,.6); }
+
+    /* Pulsanti azione stato */
+    .t-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 14px; }
+    .t-actions button {
+      background: rgba(0,0,0,.06); border: 1px solid var(--grigio-scuro);
+      color: var(--inchiostro); font-family: var(--body); font-size: .76rem;
+      padding: 9px 8px; border-radius: 6px; cursor: pointer;
+      letter-spacing: .8px; text-transform: uppercase; font-weight: 600;
+      transition: all .2s;
+    }
+    .t-actions button:hover { background: var(--inchiostro); color: var(--carta); }
+    .t-actions button.primary { background: var(--stato-color, var(--st-nuova)); border-color: var(--stato-color, var(--st-nuova)); color: var(--inchiostro); }
+    .t-actions button.primary:hover { filter: brightness(.92); }
+    .t-actions button.full { grid-column: 1 / -1; }
+
+    /* Etichetta stato in alto a destra del ticket */
+    .t-stato-badge {
+      position: absolute; top: 14px; right: 14px;
+      background: var(--stato-color); color: var(--inchiostro);
+      font-family: var(--body); font-size: .68rem; font-weight: 700;
+      padding: 4px 10px; border-radius: 100px; letter-spacing: 1px; text-transform: uppercase;
+    }
+
+    /* NUOVA — evidenziazione animata */
+    @keyframes flashNew {
+      0%, 100% { box-shadow: 0 0 0 0 var(--st-nuova), 0 18px 30px -10px rgba(0,0,0,.6); }
+      50%      { box-shadow: 0 0 0 8px rgba(232,179,74,.45), 0 18px 30px -10px rgba(0,0,0,.6); }
+    }
+    @keyframes pulseRed { 0%,100%{opacity:1} 50%{opacity:.5} }
+    .ticket.appena-arrivato { animation: flashNew 1.4s ease-out 3; }
+
+    /* Rotazione casuale leggera */
+    .ticket.r-1 { transform: rotate(-1.2deg); }
+    .ticket.r-2 { transform: rotate(0.6deg); }
+    .ticket.r-3 { transform: rotate(-0.4deg); }
+    .ticket.r-4 { transform: rotate(1.1deg); }
+
+    /* Toast aggiornamento */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translate(-50%, 80px);
+      background: var(--st-nuova); color: var(--inchiostro);
+      padding: 14px 26px; border-radius: 100px; font-family: var(--ticket); font-size: 1.05rem;
+      box-shadow: 0 20px 40px rgba(0,0,0,.5); z-index: 100;
+      opacity: 0; transition: opacity .35s, transform .45s ease; pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    /* Responsive: tablet/TV/mobile */
+    @media (min-width: 1600px) {
+      .board { grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 30px; padding: 32px; }
+      .t-head .tavolo { font-size: 3rem; }
+      .t-piatti { font-size: 1.3rem; }
+    }
+    @media (max-width: 720px) {
+      .topbar { padding: 12px 14px; }
+      .topbar h1 { font-size: 1.15rem; }
+      .board { padding: 18px 12px; gap: 16px; grid-template-columns: 1fr; }
+      .controls input[type="search"] { width: 100%; }
+      .ticket { transform: none !important; }
+      .ticket.r-1, .ticket.r-2, .ticket.r-3, .ticket.r-4 { transform: none; }
+    }
+
+    /* Fullscreen */
+    body.fullscreen .topbar { padding: 10px 16px; }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login" id="loginView">
+  <h1>Comande Cucina</h1>
+  <p class="sub">Inserisci la password per accedere al display di cucina.</p>
+  <label for="pw">Password</label>
+  <input type="password" id="pw" placeholder="••••••••" />
+  <button id="btnLogin">Entra</button>
+  <p class="msg" id="loginMsg"></p>
+</div>
+
+<!-- DASHBOARD CUCINA -->
+<div id="kdsView" style="display:none">
+  <div class="topbar">
+    <h1>★ COMANDE CUCINA</h1>
+    <span class="now" id="nowClock">--:--</span>
+    <div class="controls">
+      <input type="search" id="searchTavolo" placeholder="Cerca tavolo…" autocomplete="off" />
+      <select id="sortBy" title="Ordinamento">
+        <option value="vecchi">Più vecchi prima</option>
+        <option value="nuovi">Più nuovi prima</option>
+      </select>
+      <button class="ctrl-btn" id="btnSound" title="Suono nuovo ordine">🔔 Suono: ON</button>
+      <button class="ctrl-btn" id="btnFs" title="Schermo intero">⛶ Schermo intero</button>
+      <button class="ctrl-btn" id="btnLogout">Esci</button>
+    </div>
+    <div class="filters" id="filters"></div>
+  </div>
+
+  <div class="board" id="board">
+    <p class="empty">Caricamento comande…</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  /* ============================================================
+     KITCHEN DISPLAY — logica
+     ============================================================ */
+  const $ = (id) => document.getElementById(id);
+  const STORAGE_KEY = 'mozartAdminPwd';
+  let adminPassword = sessionStorage.getItem(STORAGE_KEY) || '';
+
+  const POLL_MS = 8000;     // polling ogni 8 secondi
+  const URGENTE_MIN = 25;   // dopo 25 minuti il ticket diventa urgente
+
+  // Stato applicativo
+  let prenotazioni = [];
+  let idVisti = new Set();        // per detection di nuove comande
+  let primaCarica = true;
+  let filtroStato = 'tutte';
+  let suonoAttivo = true;
+  let timerPoll = null;
+
+  const STATI = {
+    nuova:           { label: 'Nuova',            next: 'in_preparazione', nextLabel: 'Prendi in carico' },
+    in_preparazione: { label: 'In preparazione',  next: 'pronta',          nextLabel: 'Segna pronta' },
+    pronta:          { label: 'Pronta',           next: 'consegnata',      nextLabel: 'Consegnata' },
+    consegnata:      { label: 'Consegnata',       next: null,              nextLabel: null }
+  };
+
+  /* ---------- LOGIN ---------- */
+  async function tentaLogin(pwd) {
+    try {
+      const res = await fetch('/api/admin/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ password: pwd }) });
+      return res.ok;
+    } catch { return false; }
+  }
+  async function entra() {
+    $('loginView').style.display = 'none';
+    $('kdsView').style.display   = '';
+    avviaOrologio();
+    await carica();
+    timerPoll = setInterval(carica, POLL_MS);
+  }
+  function esci() {
+    sessionStorage.removeItem(STORAGE_KEY); adminPassword = '';
+    clearInterval(timerPoll); timerPoll = null;
+    $('kdsView').style.display = 'none';
+    $('loginView').style.display = '';
+    $('pw').value = '';
+  }
+  (async () => { if (adminPassword && await tentaLogin(adminPassword)) entra(); })();
+
+  $('btnLogin').addEventListener('click', async () => {
+    const pwd = $('pw').value.trim(); if (!pwd) return;
+    if (await tentaLogin(pwd)) { adminPassword = pwd; sessionStorage.setItem(STORAGE_KEY, pwd); entra(); }
+    else $('loginMsg').textContent = 'Password errata.';
+  });
+  $('pw').addEventListener('keydown', e => { if (e.key === 'Enter') $('btnLogin').click(); });
+  $('btnLogout').addEventListener('click', esci);
+
+  /* ---------- OROLOGIO ---------- */
+  function avviaOrologio() {
+    const upd = () => {
+      const d = new Date();
+      $('nowClock').textContent = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    };
+    upd(); setInterval(upd, 30000);
+  }
+
+  /* ---------- CARICAMENTO DATI ---------- */
+  function oggiISO() { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().split('T')[0]; }
+
+  async function carica() {
+    try {
+      const res = await fetch('/api/admin/prenotazioni?password=' + encodeURIComponent(adminPassword) + '&data=' + encodeURIComponent(oggiISO()));
+      if (res.status === 401) { esci(); return; }
+      const out = await res.json();
+      const tutte = (out.prenotazioni || []);
+      // In cucina interessano solo le prenotazioni del giorno che hanno passato
+      // il vaglio del titolare (attesa o confermata) e con piatti selezionati.
+      // Le rifiutate, completate o senza pietanze vengono ignorate.
+      prenotazioni = tutte.filter(p =>
+        p.data === oggiISO() &&
+        (p.stato === 'attesa' || p.stato === 'confermata') &&
+        Array.isArray(p.piatti) && p.piatti.length > 0
+      );
+      rilevaNuove();
+      render();
+    } catch (e) { /* errore di rete: silenzioso, riproveremo al prossimo polling */ }
+  }
+
+  function rilevaNuove() {
+    if (primaCarica) {
+      // Al primo caricamento marchiamo tutto come "già visto", senza suoni né flash.
+      prenotazioni.forEach(p => idVisti.add(String(p.id)));
+      primaCarica = false;
+      return;
+    }
+    const nuove = prenotazioni.filter(p => !idVisti.has(String(p.id)));
+    nuove.forEach(p => idVisti.add(String(p.id)));
+    if (nuove.length > 0) {
+      if (suonoAttivo) suonaCampanello();
+      mostraToast(`🔔 ${nuove.length} nuova comanda${nuove.length>1?'e':''}!`);
+      // Marca le nuove per l'animazione (verrà applicata in render)
+      nuove.forEach(p => p.__appenaArrivata = true);
+      setTimeout(() => nuove.forEach(p => delete p.__appenaArrivata), 5000);
+    }
+  }
+
+  /* ---------- RENDER ---------- */
+  function escapeHtml(s) { const d=document.createElement('div'); d.textContent=s==null?'':s; return d.innerHTML; }
+
+  /** Aggrega pietanze duplicate in "Nx Nome". */
+  function aggregaPiatti(piatti) {
+    const map = new Map();
+    piatti.forEach(p => {
+      const k = p.nome;
+      map.set(k, (map.get(k) || 0) + 1);
+    });
+    return [...map.entries()].map(([nome, qty]) => ({ nome, qty }));
+  }
+
+  /** Minuti trascorsi dalla creazione della prenotazione. */
+  function minutiDa(iso) {
+    if (!iso) return 0;
+    return Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 60000));
+  }
+
+  /** Numero tavolo derivato dall'id (le prenotazioni online non hanno un n.tavolo,
+   *  quindi usiamo gli ultimi 3 cifre dell'id come identificativo univoco). */
+  function numeroTavolo(p) {
+    const s = String(p.id);
+    return s.slice(-3).padStart(3, '0');
+  }
+
+  /** Rileva nelle note allergie / richieste critiche. */
+  const ALLERGIE_RE = /allerg|intoll|celiac|glutin|lattos|noci|arachid|crostacei|senza\s+(formaggio|glutine|lattosio)|sost|vegan/i;
+  function notaCritica(note) { return note && ALLERGIE_RE.test(note); }
+
+  function render() {
+    // Filtro per stato
+    let lista = prenotazioni.slice();
+    if (filtroStato !== 'tutte') {
+      lista = lista.filter(p => (p.statoCucina || 'nuova') === filtroStato);
+    }
+    // Filtro ricerca per tavolo
+    const q = $('searchTavolo').value.trim();
+    if (q) lista = lista.filter(p => numeroTavolo(p).includes(q));
+    // Ordinamento
+    const sortBy = $('sortBy').value;
+    lista.sort((a, b) => {
+      const ta = new Date(a.creataIl || 0).getTime();
+      const tb = new Date(b.creataIl || 0).getTime();
+      return sortBy === 'nuovi' ? tb - ta : ta - tb;
+    });
+
+    // Tabs di filtro con contatori
+    aggiornaFiltri();
+
+    // Render board
+    const board = $('board');
+    if (!lista.length) {
+      board.innerHTML = '<p class="empty">Nessuna comanda in questa categoria.</p>';
+      return;
+    }
+    board.innerHTML = '';
+    lista.forEach((p, idx) => board.appendChild(creaTicket(p, idx)));
+  }
+
+  function aggiornaFiltri() {
+    const conteggi = { tutte: prenotazioni.length, nuova: 0, in_preparazione: 0, pronta: 0, consegnata: 0 };
+    prenotazioni.forEach(p => { conteggi[p.statoCucina || 'nuova']++; });
+    const def = [
+      ['tutte', 'Tutte'],
+      ['nuova', 'Nuove'],
+      ['in_preparazione', 'In prep.'],
+      ['pronta', 'Pronte'],
+      ['consegnata', 'Consegnate']
+    ];
+    $('filters').innerHTML = def.map(([k, lab]) =>
+      `<button class="ctrl-btn filter ${filtroStato===k?'active':''}" data-f="${k}">${lab} <span class="count">${conteggi[k]||0}</span></button>`
+    ).join('');
+    $('filters').querySelectorAll('.filter').forEach(b => b.addEventListener('click', () => { filtroStato = b.dataset.f; render(); }));
+  }
+
+  function creaTicket(p, idx) {
+    const stato = p.statoCucina || 'nuova';
+    const min = minutiDa(p.creataIl);
+    const urgente = stato !== 'consegnata' && stato !== 'pronta' && min >= URGENTE_MIN;
+    const piattiAgg = aggregaPiatti(p.piatti || []);
+    const oraOrdine = (() => {
+      try { const d = new Date(p.creataIl); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
+      catch { return p.orario || ''; }
+    })();
+
+    const card = document.createElement('article');
+    card.className = `ticket st-${stato} r-${(idx % 4) + 1}` + (urgente ? ' urgente' : '') + (p.__appenaArrivata ? ' appena-arrivato' : '');
+    const noteAlert = notaCritica(p.note);
+
+    card.innerHTML = `
+      <span class="t-stato-badge">${STATI[stato].label}</span>
+
+      <div class="t-head">
+        <div class="tag">Tavolo</div>
+        <div class="tavolo">#${numeroTavolo(p)}</div>
+        <div class="meta">
+          <span><b>${oraOrdine}</b> · ord.</span>
+          <span><b>${escapeHtml(p.orario || '')}</b> · prenot.</span>
+          <span><b>${escapeHtml(p.persone)}</b> cop.</span>
+        </div>
+        ${p.nome ? `<div class="cliente">${escapeHtml(p.nome)}</div>` : ''}
+      </div>
+
+      <div class="t-piatti">
+        ${piattiAgg.length ? `<ul>${piattiAgg.map(d => `
+          <li><span class="qty">${d.qty}×</span><span class="nome">${escapeHtml(d.nome)}</span></li>
+        `).join('')}</ul>` : '<p class="vuoto">Solo tavolo, nessuna pietanza</p>'}
+      </div>
+
+      ${p.note ? `
+        <div class="t-note ${noteAlert ? 'alert' : ''}">
+          <div class="lbl">${noteAlert ? '⚠ Note importanti' : 'Note'}</div>
+          <div class="testo">${escapeHtml(p.note)}</div>
+        </div>` : ''}
+
+      <div class="t-timer">
+        <span>In coda da</span>
+        <span class="min">${min} min</span>
+      </div>
+
+      <div class="t-actions"></div>
+    `;
+
+    // Bottoni stato
+    const acts = card.querySelector('.t-actions');
+    if (STATI[stato].next) {
+      const bn = document.createElement('button');
+      bn.className = 'primary full';
+      bn.textContent = '→ ' + STATI[stato].nextLabel;
+      bn.addEventListener('click', () => cambiaStatoCucina(p.id, STATI[stato].next));
+      acts.appendChild(bn);
+    }
+    if (stato !== 'nuova') {
+      const back = document.createElement('button');
+      back.className = 'full';
+      back.textContent = '↶ Torna a Nuova';
+      back.addEventListener('click', () => cambiaStatoCucina(p.id, 'nuova'));
+      acts.appendChild(back);
+    }
+
+    return card;
+  }
+
+  async function cambiaStatoCucina(id, statoCucina) {
+    // Aggiornamento ottimistico: applica subito lo stato in locale e poi conferma.
+    const p = prenotazioni.find(x => String(x.id) === String(id));
+    const precedente = p ? p.statoCucina : null;
+    if (p) p.statoCucina = statoCucina;
+    render();
+    try {
+      const res = await fetch('/api/admin/prenotazioni/stato-cucina', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ password: adminPassword, id, statoCucina })
+      });
+      const out = await res.json();
+      if (!out.ok) { if (p) p.statoCucina = precedente; render(); mostraToast('Errore: ' + (out.messaggio || '')); }
+    } catch {
+      if (p) p.statoCucina = precedente; render();
+      mostraToast('Errore di connessione.');
+    }
+  }
+
+  /* ---------- CONTROLLI: search, sort, fullscreen, suono ---------- */
+  $('searchTavolo').addEventListener('input', render);
+  $('sortBy').addEventListener('change', render);
+
+  $('btnSound').addEventListener('click', () => {
+    suonoAttivo = !suonoAttivo;
+    $('btnSound').textContent = '🔔 Suono: ' + (suonoAttivo ? 'ON' : 'OFF');
+  });
+
+  $('btnFs').addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen?.();
+      document.body.classList.add('fullscreen');
+    } else {
+      document.exitFullscreen?.();
+      document.body.classList.remove('fullscreen');
+    }
+  });
+  document.addEventListener('fullscreenchange', () => {
+    document.body.classList.toggle('fullscreen', !!document.fullscreenElement);
+  });
+
+  /* ---------- SUONO (Web Audio API: nessun file esterno) ---------- */
+  let audioCtx = null;
+  function suonaCampanello() {
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const t0 = audioCtx.currentTime;
+      // Due brevi "ding" discreti
+      [0, 0.18].forEach((off, i) => {
+        const osc = audioCtx.createOscillator(); const g = audioCtx.createGain();
+        osc.connect(g); g.connect(audioCtx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(i === 0 ? 880 : 660, t0 + off);
+        g.gain.setValueAtTime(0.0001, t0 + off);
+        g.gain.exponentialRampToValueAtTime(0.18, t0 + off + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + off + 0.32);
+        osc.start(t0 + off); osc.stop(t0 + off + 0.35);
+      });
+    } catch (e) { /* audio context bloccato finché l'utente non clicca: ignoriamo */ }
+  }
+
+  function mostraToast(testo) {
+    const el = $('toast'); el.textContent = testo; el.classList.add('show');
+    clearTimeout(mostraToast._t); mostraToast._t = setTimeout(() => el.classList.remove('show'), 3000);
+  }
+
+  /* Aggiornamento timer minuti (senza dover ricaricare): ogni 30 secondi
+   * facciamo un re-render per aggiornare il contatore "X min in coda". */
+  setInterval(() => { if ($('kdsView').style.display !== 'none' && !primaCarica) render(); }, 30000);
+</script>
+</body>
+</html>

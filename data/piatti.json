@@ -1,0 +1,26 @@
+[
+  {
+    "nome": "Lasagna al forno",
+    "descrizione": "Pasta fresca, ragù di carne e besciamella",
+    "prezzo": 11,
+    "stato": "visibile"
+  },
+  {
+    "nome": "Tagliata di manzo",
+    "descrizione": "Controfiletto con rucola e grana",
+    "prezzo": 16,
+    "stato": "esaurito"
+  },
+  {
+    "nome": "Parmigiana di melanzane",
+    "descrizione": "Melanzane, pomodoro, basilico e mozzarella",
+    "prezzo": 10,
+    "stato": "nascosto"
+  },
+  {
+    "nome": "Insalata Caesar",
+    "descrizione": "Pollo, lattuga, crostini e salsa Caesar",
+    "prezzo": 9,
+    "stato": "esaurito"
+  }
+]

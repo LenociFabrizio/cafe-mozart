@@ -1,0 +1,142 @@
+[
+  {
+    "id": 1780147067249,
+    "nome": "Luca Gentile",
+    "telefono": "3923454566",
+    "persone": 3,
+    "data": "2026-05-30",
+    "orario": "13:30",
+    "piatti": [
+      {
+        "tipo": "giorno",
+        "nome": "Tagliata di manzo"
+      },
+      {
+        "tipo": "giorno",
+        "nome": "Insalata Caesar"
+      }
+    ],
+    "note": "Allergia alle noci",
+    "origine": "online",
+    "stato": "attesa",
+    "creataIl": "2026-05-30T13:17:46.861Z"
+  },
+  {
+    "id": 1780150211493,
+    "nome": "Fabrizio Lemacchie",
+    "telefono": "3913495256",
+    "persone": 1,
+    "data": "2026-05-30",
+    "orario": "14:00",
+    "piatti": [
+      {
+        "tipo": "giorno",
+        "nome": "Tagliata di manzo"
+      }
+    ],
+    "note": "",
+    "origine": "online",
+    "stato": "attesa",
+    "creataIl": "2026-05-30T14:10:11.186Z"
+  },
+  {
+    "id": 1780150349650,
+    "nome": "Luca Rossi",
+    "telefono": "+393913495256",
+    "persone": 1,
+    "data": "2026-05-30",
+    "orario": "13:30",
+    "piatti": [
+      {
+        "tipo": "giorno",
+        "nome": "Lasagna al forno"
+      }
+    ],
+    "note": "",
+    "origine": "online",
+    "stato": "attesa",
+    "creataIl": "2026-05-30T14:12:29.198Z"
+  },
+  {
+    "id": 1780270772168,
+    "nome": "Luca Vernola",
+    "telefono": "+393335556879",
+    "persone": 3,
+    "data": "2026-06-01",
+    "orario": "13:00",
+    "piatti": [
+      {
+        "tipo": "giorno",
+        "nome": "Lasagna al forno"
+      },
+      {
+        "tipo": "giorno",
+        "nome": "Insalata Caesar"
+      },
+      {
+        "tipo": "giorno",
+        "nome": "Lasagna al forno"
+      }
+    ],
+    "note": "",
+    "origine": "online",
+    "stato": "confermata",
+    "creataIl": "2026-05-31T23:39:31.770Z",
+    "statoCucina": "nuova"
+  },
+  {
+    "id": 1780272343774,
+    "nome": "francesco rossi",
+    "telefono": "+3332224343",
+    "persone": 2,
+    "data": "2026-06-01",
+    "orario": "13:30",
+    "piatti": [
+      {
+        "tipo": "giorno",
+        "nome": "Lasagna al forno"
+      },
+      {
+        "tipo": "giorno",
+        "nome": "Tagliata di manzo"
+      }
+    ],
+    "note": "",
+    "origine": "online",
+    "stato": "attesa",
+    "creataIl": "2026-06-01T00:05:43.347Z"
+  },
+  {
+    "id": 1780274778307,
+    "nome": "La Testa",
+    "telefono": "413253215",
+    "persone": 2,
+    "data": "2026-06-01",
+    "orario": "12:00",
+    "piatti": [],
+    "note": "",
+    "origine": "walkin",
+    "stato": "confermata",
+    "statoCucina": "nuova",
+    "creataIl": "2026-06-01T00:46:17.381Z"
+  },
+  {
+    "id": 1780274883845,
+    "nome": "top",
+    "telefono": "52352345235",
+    "persone": 1,
+    "data": "2026-06-01",
+    "orario": "12:30",
+    "piatti": [
+      {
+        "tipo": "giorno",
+        "nome": "Lasagna al forno"
+      }
+    ],
+    "note": "",
+    "origine": "online",
+    "stato": "attesa",
+    "statoCucina": "consegnata",
+    "creataIl": "2026-06-01T00:48:02.896Z"
+  }
+]
