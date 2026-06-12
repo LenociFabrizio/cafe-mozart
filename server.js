@@ -49,6 +49,66 @@ if (TELEGRAM_ATTIVO) {
 /* Connessione al database Neon (HTTP-based, ottimale per serverless) */
 const sql = neon(process.env.DATABASE_URL || 'postgresql://noop:noop@noop/noop');
 
+/* Auto-migrazione: crea le tabelle se non esistono ancora.
+ * Viene eseguita al cold-start (module load). Le istruzioni IF NOT EXISTS
+ * sono idempotenti: sicure da ripetere ad ogni avvio. */
+async function autoMigrate() {
+  if (!process.env.DATABASE_URL) return;
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS piatti (
+        id          SERIAL PRIMARY KEY,
+        nome        VARCHAR(80)  NOT NULL,
+        descrizione VARCHAR(200) NOT NULL DEFAULT '',
+        prezzo      NUMERIC(6,2),
+        stato       VARCHAR(20)  NOT NULL DEFAULT 'visibile',
+        ordine      INT          NOT NULL DEFAULT 0,
+        created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+        CONSTRAINT piatti_stato_check CHECK (stato IN ('visibile','nascosto','esaurito'))
+      )
+    `;
+    await sql`
+      CREATE TABLE IF NOT EXISTS prenotazioni (
+        id           BIGINT       PRIMARY KEY,
+        nome         VARCHAR(100) NOT NULL,
+        telefono     VARCHAR(30)  NOT NULL DEFAULT '',
+        persone      INT          NOT NULL,
+        data         DATE         NOT NULL,
+        orario       VARCHAR(5)   NOT NULL,
+        note         TEXT         NOT NULL DEFAULT '',
+        origine      VARCHAR(20)  NOT NULL DEFAULT 'online',
+        stato        VARCHAR(20)  NOT NULL DEFAULT 'attesa',
+        stato_cucina VARCHAR(20)  NOT NULL DEFAULT 'nuova',
+        creata_il    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+        CONSTRAINT prenotazioni_stato_check        CHECK (stato        IN ('attesa','confermata','rifiutata','completata')),
+        CONSTRAINT prenotazioni_stato_cucina_check CHECK (stato_cucina IN ('nuova','in_preparazione','pronta','consegnata')),
+        CONSTRAINT prenotazioni_origine_check      CHECK (origine      IN ('online','telefonica','walkin','manuale'))
+      )
+    `;
+    await sql`
+      CREATE TABLE IF NOT EXISTS prenotazione_piatti (
+        id              SERIAL  PRIMARY KEY,
+        prenotazione_id BIGINT  NOT NULL REFERENCES prenotazioni(id) ON DELETE CASCADE,
+        tipo            VARCHAR(20) NOT NULL DEFAULT 'giorno',
+        nome            VARCHAR(80) NOT NULL,
+        ordine          INT     NOT NULL DEFAULT 0,
+        CONSTRAINT pren_piatti_tipo_check CHECK (tipo IN ('giorno','carta'))
+      )
+    `;
+    await sql`
+      CREATE TABLE IF NOT EXISTS menu_pdf (
+        id            INT         PRIMARY KEY DEFAULT 1,
+        data_base64   TEXT,
+        aggiornato_il TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `;
+    console.log('[migrate] Schema verificato.');
+  } catch (e) {
+    console.error('[migrate] Errore auto-migrazione:', e.message);
+  }
+}
+autoMigrate();
+
 /* Anti-duplicati notifiche (in-memory, best-effort in ambienti serverless:
  * nei cold-start la Map si azzera, al massimo si rischia una notifica doppia) */
 const NOTIFICHE_RECENTI = new Map();
@@ -350,6 +410,22 @@ async function notificaTitolare(prenotazione) {
 /* ============================================================
  *  API PUBBLICHE
  * ========================================================== */
+
+/* Health check — stato del server e della connessione DB */
+app.get('/api/health', async (req, res) => {
+  const dbSet = (process.env.DATABASE_URL || '').length > 10;
+  let dbOk = false;
+  let dbError = null;
+  if (dbSet) {
+    try {
+      await sql`SELECT 1`;
+      dbOk = true;
+    } catch (e) {
+      dbError = e.message;
+    }
+  }
+  res.json({ ok: dbOk, db_set: dbSet, db_ok: dbOk, db_err: dbError });
+});
 
 /* Configurazione per il form di prenotazione */
 app.get('/api/config', (req, res) => {
