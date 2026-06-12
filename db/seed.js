@@ -16,9 +16,10 @@
  */
 require('dotenv').config({ quiet: true });
 
-const { neon } = require('@neondatabase/serverless');
-const fs   = require('fs');
-const path = require('path');
+const { neon }  = require('@neondatabase/serverless');
+const bcrypt    = require('bcryptjs');
+const fs        = require('fs');
+const path      = require('path');
 
 if (!process.env.DATABASE_URL) {
   console.error('\n[seed] ERRORE: variabile DATABASE_URL non trovata.');
@@ -87,6 +88,14 @@ async function creaSchema() {
   await sql`CREATE INDEX IF NOT EXISTS idx_prenotazioni_creata_il ON prenotazioni(creata_il DESC)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_pren_piatti_id         ON prenotazione_piatti(prenotazione_id)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_piatti_ordine          ON piatti(ordine, id)`;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS admin_credenziali (
+      id             INT         PRIMARY KEY DEFAULT 1,
+      password_hash  TEXT        NOT NULL,
+      aggiornato_il  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
 
   console.log('[seed] Schema creato / verificato.');
 }
@@ -176,6 +185,18 @@ async function seedPdf() {
   console.log('[seed] PDF migrato.');
 }
 
+async function seedAdmin() {
+  const existing = await sql`SELECT id FROM admin_credenziali WHERE id = 1`;
+  if (existing.length) {
+    console.log('[seed] Password admin già presente nel DB — skip.');
+    return;
+  }
+  const defaultPwd = process.env.ADMIN_PASSWORD || 'mozart2024';
+  const hash = await bcrypt.hash(defaultPwd, 10);
+  await sql`INSERT INTO admin_credenziali (id, password_hash) VALUES (1, ${hash})`;
+  console.log('[seed] Password admin inizializzata (usa ADMIN_PASSWORD o "mozart2024").');
+}
+
 async function main() {
   console.log('\n[seed] Connessione a Neon...');
   try {
@@ -183,6 +204,7 @@ async function main() {
     await seedPiatti();
     await seedPrenotazioni();
     await seedPdf();
+    await seedAdmin();
     console.log('\n[seed] ✓ Migrazione completata con successo!\n');
   } catch (err) {
     console.error('\n[seed] ERRORE:', err.message || err);

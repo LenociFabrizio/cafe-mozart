@@ -24,6 +24,7 @@ const express = require('express');
 const multer  = require('multer');
 const path    = require('path');
 const { neon } = require('@neondatabase/serverless');
+const bcrypt   = require('bcryptjs');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -102,6 +103,19 @@ async function autoMigrate() {
         aggiornato_il TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
     `;
+    await sql`
+      CREATE TABLE IF NOT EXISTS admin_credenziali (
+        id             INT         PRIMARY KEY DEFAULT 1,
+        password_hash  TEXT        NOT NULL,
+        aggiornato_il  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `;
+    const existing = await sql`SELECT id FROM admin_credenziali WHERE id = 1`;
+    if (!existing.length) {
+      const hash = await bcrypt.hash(ADMIN_PASSWORD, 10);
+      await sql`INSERT INTO admin_credenziali (id, password_hash) VALUES (1, ${hash})`;
+      console.log('[migrate] Password admin inizializzata nel DB.');
+    }
     console.log('[migrate] Schema verificato.');
   } catch (e) {
     console.error('[migrate] Errore auto-migrazione:', e.message);
@@ -173,9 +187,16 @@ function telefonoValido(v) {
   return cifre >= 7 && cifre <= 15;
 }
 
-function authOk(req) {
+async function verificaPassword(pwd) {
+  if (!pwd) return false;
+  const rows = await sql`SELECT password_hash FROM admin_credenziali WHERE id = 1`;
+  if (!rows.length) return String(pwd) === ADMIN_PASSWORD;
+  return bcrypt.compare(String(pwd), rows[0].password_hash);
+}
+
+async function authOk(req) {
   const pwd = req.body?.password !== undefined ? req.body.password : req.query.password;
-  return pwd === ADMIN_PASSWORD;
+  return verificaPassword(pwd);
 }
 
 const STATI_ATTIVI = ['attesa', 'confermata'];
@@ -543,15 +564,37 @@ app.post('/api/prenotazioni', async (req, res) => {
  *  API ADMIN (protette da password)
  * ========================================================== */
 
-app.post('/api/admin/login', (req, res) => {
-  if (req.body.password === ADMIN_PASSWORD) return res.json({ ok: true });
+app.post('/api/admin/login', async (req, res) => {
+  if (await verificaPassword(req.body.password)) return res.json({ ok: true });
   res.status(401).json({ ok: false, messaggio: 'Password errata.' });
+});
+
+/* Cambia password admin */
+app.post('/api/admin/password', async (req, res) => {
+  const { password, nuova, conferma } = req.body;
+  if (!(await verificaPassword(password)))
+    return res.status(401).json({ ok: false, messaggio: 'Password attuale errata.' });
+  if (!nuova || String(nuova).length < 6)
+    return res.status(400).json({ ok: false, messaggio: 'La nuova password deve avere almeno 6 caratteri.' });
+  if (nuova !== conferma)
+    return res.status(400).json({ ok: false, messaggio: 'Le due password non coincidono.' });
+  try {
+    const hash = await bcrypt.hash(String(nuova), 10);
+    await sql`
+      INSERT INTO admin_credenziali (id, password_hash, aggiornato_il) VALUES (1, ${hash}, NOW())
+      ON CONFLICT (id) DO UPDATE SET password_hash = EXCLUDED.password_hash, aggiornato_il = NOW()
+    `;
+    res.json({ ok: true, messaggio: 'Password aggiornata.' });
+  } catch (err) {
+    console.error('[POST /api/admin/password]', err);
+    res.status(500).json({ ok: false, messaggio: 'Errore nel salvataggio.' });
+  }
 });
 
 /* ── Gestione Menu del Giorno ─────────────────────────────── */
 
 app.get('/api/admin/piatti', async (req, res) => {
-  if (!authOk(req)) return res.status(401).json({ ok: false, messaggio: 'Password errata.' });
+  if (!(await authOk(req))) return res.status(401).json({ ok: false, messaggio: 'Password errata.' });
   try {
     res.json({ ok: true, piatti: await leggiPiatti() });
   } catch (err) {
@@ -561,7 +604,7 @@ app.get('/api/admin/piatti', async (req, res) => {
 });
 
 app.post('/api/admin/piatti/aggiungi', async (req, res) => {
-  if (!authOk(req)) return res.status(401).json({ ok: false, messaggio: 'Password errata.' });
+  if (!(await authOk(req))) return res.status(401).json({ ok: false, messaggio: 'Password errata.' });
   const errore = validaPiatto(req.body.piatto);
   if (errore) return res.status(400).json({ ok: false, messaggio: errore });
   try {
@@ -584,7 +627,7 @@ app.post('/api/admin/piatti/aggiungi', async (req, res) => {
 });
 
 app.post('/api/admin/piatti/modifica', async (req, res) => {
-  if (!authOk(req)) return res.status(401).json({ ok: false, messaggio: 'Password errata.' });
+  if (!(await authOk(req))) return res.status(401).json({ ok: false, messaggio: 'Password errata.' });
   const id     = Number(req.body.id);
   const errore = validaPiatto(req.body.piatto);
   if (errore) return res.status(400).json({ ok: false, messaggio: errore });
@@ -607,7 +650,7 @@ app.post('/api/admin/piatti/modifica', async (req, res) => {
 
 /* Cambia solo lo stato (visibile / nascosto / esaurito) */
 app.post('/api/admin/piatti/stato', async (req, res) => {
-  if (!authOk(req)) return res.status(401).json({ ok: false, messaggio: 'Password errata.' });
+  if (!(await authOk(req))) return res.status(401).json({ ok: false, messaggio: 'Password errata.' });
   const id    = Number(req.body.id);
   const stato = req.body.stato;
   if (!['visibile', 'nascosto', 'esaurito'].includes(stato))
@@ -623,7 +666,7 @@ app.post('/api/admin/piatti/stato', async (req, res) => {
 });
 
 app.post('/api/admin/piatti/elimina', async (req, res) => {
-  if (!authOk(req)) return res.status(401).json({ ok: false, messaggio: 'Password errata.' });
+  if (!(await authOk(req))) return res.status(401).json({ ok: false, messaggio: 'Password errata.' });
   const id = Number(req.body.id);
   try {
     const rows = await sql`DELETE FROM piatti WHERE id=${id} RETURNING id`;
@@ -637,7 +680,7 @@ app.post('/api/admin/piatti/elimina', async (req, res) => {
 
 /* Upload menu PDF — salvato come base64 nel DB (compatibile serverless) */
 app.post('/api/admin/menu', uploadPdf.single('file'), async (req, res) => {
-  if (req.body.password !== ADMIN_PASSWORD)
+  if (!(await verificaPassword(req.body.password)))
     return res.status(401).json({ ok: false, messaggio: 'Password errata.' });
   if (!req.file)
     return res.status(400).json({ ok: false, messaggio: 'Nessun file caricato.' });
@@ -658,7 +701,7 @@ app.post('/api/admin/menu', uploadPdf.single('file'), async (req, res) => {
 
 /* Elenco prenotazioni + config + disponibilità del giorno richiesto */
 app.get('/api/admin/prenotazioni', async (req, res) => {
-  if (!authOk(req)) return res.status(401).json({ ok: false, messaggio: 'Password errata.' });
+  if (!(await authOk(req))) return res.status(401).json({ ok: false, messaggio: 'Password errata.' });
   try {
     const data         = req.query.data || oggiISO();
     const prenotazioni = await leggiPrenotazioni();
@@ -676,7 +719,7 @@ app.get('/api/admin/prenotazioni', async (req, res) => {
 
 /* Crea prenotazione manuale / telefonica / walk-in (lato admin) */
 app.post('/api/admin/prenotazioni/crea', async (req, res) => {
-  if (!authOk(req)) return res.status(401).json({ ok: false, messaggio: 'Password errata.' });
+  if (!(await authOk(req))) return res.status(401).json({ ok: false, messaggio: 'Password errata.' });
   const { nome, telefono, persone, data, orario, piatti, note, origine, stato } = req.body;
   const nPersone = Number(persone);
 
@@ -717,7 +760,7 @@ app.post('/api/admin/prenotazioni/crea', async (req, res) => {
 
 /* Modifica una prenotazione esistente (admin) */
 app.post('/api/admin/prenotazioni/modifica', async (req, res) => {
-  if (!authOk(req)) return res.status(401).json({ ok: false, messaggio: 'Password errata.' });
+  if (!(await authOk(req))) return res.status(401).json({ ok: false, messaggio: 'Password errata.' });
   const { id, nome, telefono, persone, data, orario, note } = req.body;
   const nPersone = Number(persone);
 
@@ -772,7 +815,7 @@ app.post('/api/admin/prenotazioni/modifica', async (req, res) => {
 
 /* Cambia stato: attesa / confermata / rifiutata / completata */
 app.post('/api/admin/prenotazioni/stato', async (req, res) => {
-  if (!authOk(req)) return res.status(401).json({ ok: false, messaggio: 'Password errata.' });
+  if (!(await authOk(req))) return res.status(401).json({ ok: false, messaggio: 'Password errata.' });
   const { id, stato } = req.body;
   if (!['attesa', 'confermata', 'rifiutata', 'completata'].includes(stato))
     return res.status(400).json({ ok: false, messaggio: 'Stato non valido.' });
@@ -807,7 +850,7 @@ app.post('/api/admin/prenotazioni/stato', async (req, res) => {
 
 /* Cambia lo STATO CUCINA (Kitchen Display) */
 app.post('/api/admin/prenotazioni/stato-cucina', async (req, res) => {
-  if (!authOk(req)) return res.status(401).json({ ok: false, messaggio: 'Password errata.' });
+  if (!(await authOk(req))) return res.status(401).json({ ok: false, messaggio: 'Password errata.' });
   const { id, statoCucina } = req.body;
   if (!['nuova', 'in_preparazione', 'pronta', 'consegnata'].includes(statoCucina))
     return res.status(400).json({ ok: false, messaggio: 'Stato cucina non valido.' });
@@ -828,7 +871,7 @@ app.post('/api/admin/prenotazioni/stato-cucina', async (req, res) => {
 
 /* Elimina una prenotazione */
 app.post('/api/admin/prenotazioni/elimina', async (req, res) => {
-  if (!authOk(req)) return res.status(401).json({ ok: false, messaggio: 'Password errata.' });
+  if (!(await authOk(req))) return res.status(401).json({ ok: false, messaggio: 'Password errata.' });
   const { id } = req.body;
   try {
     const rows = await sql`DELETE FROM prenotazioni WHERE id=${Number(id)} RETURNING id`;

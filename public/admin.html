@@ -175,6 +175,23 @@
       <p id="menuStato" style="font-size:.85rem;color:var(--grigio);margin-top:10px;"></p>
     </div>
 
+    <!-- Cambio password (larghezza piena) -->
+    <div class="panel-card pdf-section">
+      <h3>Sicurezza — Cambia password</h3>
+      <p class="hint">Inserisci la password attuale e scegline una nuova (minimo 6 caratteri).</p>
+      <label class="fld">Password attuale
+        <input type="password" id="pwdAttuale" placeholder="••••••••" />
+      </label>
+      <label class="fld">Nuova password
+        <input type="password" id="pwdNuova" placeholder="••••••••" />
+      </label>
+      <label class="fld">Conferma nuova password
+        <input type="password" id="pwdConferma" placeholder="••••••••" />
+      </label>
+      <button class="btn btn-gold" id="btnCambiaPwd">Aggiorna password</button>
+      <p class="msg" id="pwdMsg"></p>
+    </div>
+
     <p style="margin-top:8px"><a href="index.html" class="back-link">← Torna al sito</a></p>
   </div>
 
@@ -479,6 +496,46 @@
       } catch {
         menuMsg.textContent = '✕ Errore di connessione.';
         menuMsg.className = 'msg error';
+      }
+    });
+
+    /* ----- Cambio password ----- */
+    const pwdMsg = document.getElementById('pwdMsg');
+    document.getElementById('btnCambiaPwd').addEventListener('click', async () => {
+      const attuale  = document.getElementById('pwdAttuale').value;
+      const nuova    = document.getElementById('pwdNuova').value;
+      const conferma = document.getElementById('pwdConferma').value;
+
+      if (!attuale || !nuova || !conferma) {
+        pwdMsg.textContent = '✕ Compila tutti i campi.';
+        pwdMsg.className = 'msg error';
+        return;
+      }
+      pwdMsg.textContent = 'Salvataggio…';
+      pwdMsg.className = 'msg';
+
+      try {
+        const res = await fetch('/api/admin/password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: attuale, nuova, conferma })
+        });
+        const out = await res.json();
+        if (out.ok) {
+          adminPassword = nuova;
+          sessionStorage.setItem(STORAGE_KEY, nuova);
+          pwdMsg.textContent = '✓ ' + out.messaggio;
+          pwdMsg.className = 'msg ok';
+          document.getElementById('pwdAttuale').value  = '';
+          document.getElementById('pwdNuova').value    = '';
+          document.getElementById('pwdConferma').value = '';
+        } else {
+          pwdMsg.textContent = '✕ ' + (out.messaggio || 'Errore.');
+          pwdMsg.className = 'msg error';
+        }
+      } catch {
+        pwdMsg.textContent = '✕ Errore di connessione.';
+        pwdMsg.className = 'msg error';
       }
     });
   </script>
