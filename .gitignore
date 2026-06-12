@@ -1,0 +1,18 @@
+# Dipendenze
+node_modules/
+
+# Variabili d'ambiente (contengono credenziali)
+.env
+.env.local
+.env.*.local
+
+# Dati locali (sostituiti dal database in produzione)
+data/
+
+# Build Vercel
+.vercel/
+
+# Editor e OS
+.DS_Store
+Thumbs.db
+*.log

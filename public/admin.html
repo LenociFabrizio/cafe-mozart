@@ -290,15 +290,16 @@
         return;
       }
       listaPiatti.innerHTML = '';
-      piatti.forEach((p, i) => {
-        const nome = (typeof p === 'string') ? p : (p && p.nome) || '';
-        const desc = (p && p.descrizione) ? p.descrizione : '';
+      piatti.forEach((p) => {
+        const id    = p && p.id   ? p.id    : null;
+        const nome  = (typeof p === 'string') ? p : (p && p.nome) || '';
+        const desc  = (p && p.descrizione) ? p.descrizione : '';
         const prezzo = (p && p.prezzo !== undefined) ? p.prezzo : null;
-        const stato = (p && p.stato) ? p.stato : 'visibile';
+        const stato  = (p && p.stato) ? p.stato : 'visibile';
 
         const row = document.createElement('div');
         row.className = 'dish-row stato-' + stato;
-        row.dataset.indice = i;
+        row.dataset.id = id;
         const prezzoHtml = fmtPrezzo(prezzo) ? `<span class="dish-prezzo">${fmtPrezzo(prezzo)}</span>` : '';
         row.innerHTML = `
           <div class="info">
@@ -315,19 +316,19 @@
             <button class="del" title="Elimina">🗑</button>
           </div>`;
 
-        row.querySelector('.stato-sel').addEventListener('change', (e) => cambiaStato(i, e.target.value));
-        row.querySelector('.edit').addEventListener('click', () => entraInModifica(row, nome, desc, prezzo, i));
-        row.querySelector('.del').addEventListener('click', () => chiediEliminaPiatto(i, nome));
+        row.querySelector('.stato-sel').addEventListener('change', (e) => cambiaStato(id, e.target.value));
+        row.querySelector('.edit').addEventListener('click', () => entraInModifica(row, nome, desc, prezzo, id));
+        row.querySelector('.del').addEventListener('click', () => chiediEliminaPiatto(id, nome));
         listaPiatti.appendChild(row);
       });
     }
 
     /* ----- Cambio stato (Visibile / Nascosto / Esaurito) ----- */
-    async function cambiaStato(indice, stato) {
+    async function cambiaStato(id, stato) {
       try {
         const res = await fetch('/api/admin/piatti/stato', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password: adminPassword, indice, stato })
+          body: JSON.stringify({ password: adminPassword, id, stato })
         });
         const out = await res.json();
         if (out.ok) { showMsg('Stato aggiornato: ' + ETICHETTA_STATO[stato] + '.', true); mostraPiatti(out.piatti); }
@@ -336,7 +337,7 @@
     }
 
     /* ----- Modifica inline (nome, descrizione, prezzo) ----- */
-    function entraInModifica(row, nome, desc, prezzo, indice) {
+    function entraInModifica(row, nome, desc, prezzo, id) {
       const altra = listaPiatti.querySelector('.dish-row.editing');
       if (altra && altra !== row) caricaPiatti();
       row.classList.add('editing');
@@ -355,7 +356,7 @@
       const inputPrezzo = row.querySelector('.ed-prezzo');
       inputNome.focus(); inputNome.select();
 
-      const salva = () => salvaModifica(indice, inputNome.value, inputDesc.value, inputPrezzo.value);
+      const salva = () => salvaModifica(id, inputNome.value, inputDesc.value, inputPrezzo.value);
       row.querySelector('.save').addEventListener('click', salva);
       row.querySelector('.cancel').addEventListener('click', caricaPiatti);
       [inputNome, inputDesc, inputPrezzo].forEach(inp => inp.addEventListener('keydown', e => {
@@ -364,7 +365,7 @@
       }));
     }
 
-    async function salvaModifica(indice, nome, descrizione, prezzo) {
+    async function salvaModifica(id, nome, descrizione, prezzo) {
       const n = (nome || '').trim();
       if (n.length < 2) { showMsg('Il nome del piatto è obbligatorio (min. 2 caratteri).', false); return; }
       const piatto = { nome: n, descrizione: (descrizione || '').trim() };
@@ -372,7 +373,7 @@
       try {
         const res = await fetch('/api/admin/piatti/modifica', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password: adminPassword, indice, piatto })
+          body: JSON.stringify({ password: adminPassword, id, piatto })
         });
         const out = await res.json();
         if (out.ok) { showMsg('Piatto aggiornato.', true); mostraPiatti(out.piatti); }
@@ -382,8 +383,8 @@
 
     /* ----- Eliminazione con conferma ----- */
     let pendingDelete = null;
-    function chiediEliminaPiatto(indice, nome) {
-      pendingDelete = indice;
+    function chiediEliminaPiatto(id, nome) {
+      pendingDelete = id;
       document.getElementById('confirmText').textContent = `Eliminare definitivamente "${nome}"?`;
       document.getElementById('confirmModal').classList.add('show');
     }
@@ -393,12 +394,12 @@
     });
     document.getElementById('confirmYes').addEventListener('click', async () => {
       if (pendingDelete == null) return;
-      const indice = pendingDelete; pendingDelete = null;
+      const id = pendingDelete; pendingDelete = null;
       document.getElementById('confirmModal').classList.remove('show');
       try {
         const res = await fetch('/api/admin/piatti/elimina', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password: adminPassword, indice })
+          body: JSON.stringify({ password: adminPassword, id })
         });
         const out = await res.json();
         if (out.ok) { showMsg('Piatto eliminato.', true); mostraPiatti(out.piatti); }
