@@ -37,6 +37,11 @@ const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const TELEGRAM_CHAT_IDS  = (process.env.TELEGRAM_CHAT_ID || '').split(',').map(s => s.trim()).filter(Boolean);
 const TELEGRAM_ATTIVO    = !!(TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_IDS.length);
 
+const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID || '';
+const TWILIO_AUTH_TOKEN  = process.env.TWILIO_AUTH_TOKEN  || '';
+const TWILIO_FROM_NUMBER = process.env.TWILIO_FROM_NUMBER || '';
+const TWILIO_ATTIVO      = !!(TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN && TWILIO_FROM_NUMBER);
+
 if (!process.env.DATABASE_URL) {
   console.warn('  [db] ATTENZIONE: DATABASE_URL non impostata. Le API dati non funzioneranno.');
 }
@@ -45,6 +50,12 @@ if (TELEGRAM_ATTIVO) {
   console.log('  [notifiche] Telegram attivo — chat IDs:', TELEGRAM_CHAT_IDS.join(', '));
 } else {
   console.log('  [notifiche] Credenziali Telegram assenti: modalità simulazione (log).');
+}
+
+if (TWILIO_ATTIVO) {
+  console.log('  [sms] Twilio attivo — da:', TWILIO_FROM_NUMBER);
+} else {
+  console.log('  [sms] Credenziali Twilio assenti: SMS in modalità simulazione (log).');
 }
 
 /* Connessione al database Neon (HTTP-based, ottimale per serverless) */
@@ -356,7 +367,7 @@ function escTg(s) {
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-function costruisciTelegramNotificaTitolare(p) {
+function costruisciTelegramNotificaTitolare(p, statoFinale = null) {
   const piattiBlock = (p.piatti && p.piatti.length)
     ? p.piatti.map(d =>
         `   • <i>${escTg(d.tipo === 'carta' ? 'Drink List' : 'Menu del Giorno')}</i> — ${escTg(d.nome)}`
@@ -364,6 +375,9 @@ function costruisciTelegramNotificaTitolare(p) {
     : '   <i>Nessuna pietanza selezionata</i>';
   const telefonoRiga = p.telefono ? `📞 <b>Telefono:</b> ${escTg(p.telefono)}` : '📞 <b>Telefono:</b> —';
   const noteRiga     = p.note     ? `\n📝 <b>Note:</b> <i>${escTg(p.note)}</i>` : '';
+  const statoRiga    = statoFinale === 'confermata' ? '✅ <b>CONFERMATA</b>'
+                     : statoFinale === 'rifiutata'  ? '❌ <b>RIFIUTATA</b>'
+                     : '⏳ <i>In attesa di conferma</i>';
   return [
     `🔔 <b>NUOVA PRENOTAZIONE</b>`,
     `🏷 <i>${escTg(etichettaOrigine(p.origine))}</i>`,
@@ -378,7 +392,7 @@ function costruisciTelegramNotificaTitolare(p) {
     `🍽 <b>Pietanze:</b>`,
     piattiBlock + noteRiga,
     ``,
-    `⏳ <i>In attesa di conferma</i>`
+    statoRiga
   ].join('\n');
 }
 
@@ -389,7 +403,7 @@ function linkMessaggioCliente(p, testo) {
   return `https://wa.me/${numero}?text=${encodeURIComponent(testo)}`;
 }
 
-async function inviaTelegram(testoHtml) {
+async function inviaTelegram(testoHtml, replyMarkup = null) {
   if (!TELEGRAM_ATTIVO) {
     console.log('[notifiche][SIMULAZIONE] Telegram non configurato.');
     console.log('--- messaggio ---\n' + testoHtml.replace(/<\/?[^>]+>/g, '') + '\n-----------------');
@@ -399,15 +413,17 @@ async function inviaTelegram(testoHtml) {
   let almenoUno = false;
   for (const chatId of TELEGRAM_CHAT_IDS) {
     try {
+      const msgBody = {
+        chat_id:                  chatId,
+        text:                     testoHtml,
+        parse_mode:               'HTML',
+        disable_web_page_preview: true
+      };
+      if (replyMarkup) msgBody.reply_markup = replyMarkup;
       const resp = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id:                  chatId,
-          text:                     testoHtml,
-          parse_mode:               'HTML',
-          disable_web_page_preview: true
-        })
+        body: JSON.stringify(msgBody)
       });
       const data = await resp.json();
       if (!resp.ok || !data.ok) {
@@ -428,7 +444,66 @@ async function notificaTitolare(prenotazione) {
     console.log('[notifiche] Già notificato id', prenotazione.id, '— saltato (anti-duplicato).');
     return false;
   }
-  return inviaTelegram(costruisciTelegramNotificaTitolare(prenotazione));
+  const testo = costruisciTelegramNotificaTitolare(prenotazione);
+  const replyMarkup = {
+    inline_keyboard: [[
+      { text: '✅ Conferma', callback_data: `conferma:${prenotazione.id}` },
+      { text: '❌ Rifiuta',  callback_data: `rifiuta:${prenotazione.id}`  }
+    ]]
+  };
+  return inviaTelegram(testo, replyMarkup);
+}
+
+/* ============================================================
+ *  SMS (Twilio REST API — no SDK)
+ * ========================================================== */
+function normalizzaTelefono(raw) {
+  const s = String(raw || '').replace(/[\s\-().]/g, '');
+  if (s.startsWith('+')) return s;
+  if (s.startsWith('0039')) return '+' + s.slice(2);
+  if (s.startsWith('39') && s.length >= 11) return '+' + s;
+  return '+39' + s;
+}
+
+async function inviaSMS(numeroDest, testo) {
+  const numero = normalizzaTelefono(numeroDest);
+  if (!TWILIO_ATTIVO) {
+    console.log(`[sms][SIMULAZIONE] SMS a ${numero}:\n${testo}`);
+    return false;
+  }
+  try {
+    const url  = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`;
+    const body = new URLSearchParams({ To: numero, From: TWILIO_FROM_NUMBER, Body: testo });
+    const resp = await fetch(url, {
+      method:  'POST',
+      headers: {
+        'Authorization': 'Basic ' + Buffer.from(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`).toString('base64'),
+        'Content-Type':  'application/x-www-form-urlencoded'
+      },
+      body: body.toString()
+    });
+    const data = await resp.json();
+    if (!resp.ok || data.status === 'failed') {
+      console.error('[sms] ERRORE Twilio:', data.message || resp.statusText);
+      return false;
+    }
+    console.log('[sms] Inviato a', numero, '— SID:', data.sid);
+    return true;
+  } catch (err) {
+    console.error('[sms] ERRORE rete:', err?.message || err);
+    return false;
+  }
+}
+
+function costruisciSMSConferma(pren) {
+  const p = Number(pren.persone) === 1 ? 'persona' : 'persone';
+  return `Gentile ${pren.nome}, la Sua prenotazione presso Bistrout & Café Mozart per ${pren.persone} ${p} il ${pren.data} alle ${pren.orario} è stata CONFERMATA. La aspettiamo!`;
+}
+
+function costruisciSMSRifiuto(pren, alternativi = []) {
+  const proposta = alternativi.length
+    ? ` Le proponiamo questi orari alternativi: ${alternativi.join(', ')}.` : '';
+  return `Gentile ${pren.nome}, siamo spiacenti ma non possiamo accogliere la Sua prenotazione del ${pren.data} alle ${pren.orario}.${proposta} Per assistenza ci contatti telefonicamente. Bistrout & Café Mozart.`;
 }
 
 /* ============================================================
@@ -564,12 +639,102 @@ app.post('/api/prenotazioni', async (req, res) => {
 });
 
 /* ============================================================
+ *  WEBHOOK TELEGRAM (callback bottoni Conferma / Rifiuta)
+ * ========================================================== */
+app.post('/api/telegram/webhook', async (req, res) => {
+  res.json({ ok: true }); // Risponde subito a Telegram (< 5 s)
+
+  const update = req.body;
+  if (!update?.callback_query) return;
+
+  const cb     = update.callback_query;
+  const parts  = (cb.data || '').split(':');
+  const azione = parts[0];
+  const id     = Number(parts[1]);
+
+  if (!['conferma', 'rifiuta'].includes(azione) || !id) return;
+
+  const nuovoStato = azione === 'conferma' ? 'confermata' : 'rifiutata';
+
+  // Rimuove il "loading" dal bottone
+  fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      callback_query_id: cb.id,
+      text: nuovoStato === 'confermata' ? '✅ Prenotazione confermata!' : '❌ Prenotazione rifiutata.'
+    })
+  }).catch(() => {});
+
+  try {
+    const rows = await sql`UPDATE prenotazioni SET stato=${nuovoStato} WHERE id=${id} RETURNING id`;
+    if (!rows.length) return;
+
+    const lista = await leggiPrenotazioni();
+    const pren  = lista.find(p => String(p.id) === String(id));
+    if (!pren) return;
+
+    // Modifica il messaggio nella chat di chi ha cliccato (rimuove i bottoni, aggiunge stato)
+    const testoAggiornato = costruisciTelegramNotificaTitolare(pren, nuovoStato);
+    fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/editMessageText`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id:                  cb.message.chat.id,
+        message_id:               cb.message.message_id,
+        text:                     testoAggiornato,
+        parse_mode:               'HTML',
+        disable_web_page_preview: true
+      })
+    }).catch(() => {});
+
+    // Invia SMS al cliente
+    if (pren.telefono) {
+      if (nuovoStato === 'confermata') {
+        await inviaSMS(pren.telefono, costruisciSMSConferma(pren));
+      } else {
+        const alternativi = disponibilitaGiorno(lista, pren.data)
+          .filter(s => s.liberi >= pren.persone).map(s => s.orario);
+        await inviaSMS(pren.telefono, costruisciSMSRifiuto(pren, alternativi));
+      }
+    }
+  } catch (err) {
+    console.error('[telegram/webhook] Errore:', err);
+  }
+});
+
+/* ============================================================
  *  API ADMIN (protette da password)
  * ========================================================== */
 
 app.post('/api/admin/login', async (req, res) => {
   if (await verificaPassword(req.body.password)) return res.json({ ok: true });
   res.status(401).json({ ok: false, messaggio: 'Password errata.' });
+});
+
+/* Registra il webhook Telegram — chiamare UNA VOLTA dopo ogni deploy su Vercel:
+ *   GET /api/admin/telegram/setup-webhook?password=<pwd>
+ */
+app.get('/api/admin/telegram/setup-webhook', async (req, res) => {
+  if (!(await authOk(req))) return res.status(401).json({ ok: false, messaggio: 'Password errata.' });
+  if (!TELEGRAM_ATTIVO) return res.status(400).json({ ok: false, messaggio: 'Telegram non configurato (credenziali mancanti).' });
+
+  const host       = req.headers['x-forwarded-host'] || req.headers.host || 'localhost';
+  const protocol   = req.headers['x-forwarded-proto'] || (host.includes('localhost') ? 'http' : 'https');
+  const webhookUrl = `${protocol}://${host}/api/telegram/webhook`;
+
+  try {
+    const resp = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: webhookUrl })
+    });
+    const data = await resp.json();
+    if (data.ok) {
+      res.json({ ok: true, messaggio: `Webhook registrato: ${webhookUrl}` });
+    } else {
+      res.status(500).json({ ok: false, messaggio: data.description });
+    }
+  } catch (err) {
+    res.status(500).json({ ok: false, messaggio: err.message });
+  }
 });
 
 /* Cambia password admin */
@@ -831,20 +996,19 @@ app.post('/api/admin/prenotazioni/stato', async (req, res) => {
     const pren  = lista.find(p => String(p.id) === String(id));
 
     let linkCliente = null;
+    let smsInviato  = false;
     if (pren?.telefono) {
       if (stato === 'confermata') {
-        const testo = `Gentile ${pren.nome}, la Sua prenotazione presso Bistrout & Café Mozart per ${pren.persone} ${Number(pren.persone) === 1 ? 'persona' : 'persone'} il ${pren.data} alle ${pren.orario} è stata CONFERMATA. La aspettiamo!`;
-        linkCliente = linkMessaggioCliente(pren, testo);
+        smsInviato  = await inviaSMS(pren.telefono, costruisciSMSConferma(pren));
+        linkCliente = linkMessaggioCliente(pren, costruisciSMSConferma(pren));
       } else if (stato === 'rifiutata') {
         const alternativi = disponibilitaGiorno(lista, pren.data)
           .filter(s => s.liberi >= pren.persone).map(s => s.orario);
-        const propostaOrari = alternativi.length
-          ? ` Le proponiamo questi orari alternativi: ${alternativi.join(', ')}.` : '';
-        const testo = `Gentile ${pren.nome}, siamo spiacenti ma non possiamo accogliere la Sua prenotazione del ${pren.data} alle ${pren.orario}.${propostaOrari} Per assistenza ci contatti al telefono. Grazie.`;
-        linkCliente = linkMessaggioCliente(pren, testo);
+        smsInviato  = await inviaSMS(pren.telefono, costruisciSMSRifiuto(pren, alternativi));
+        linkCliente = linkMessaggioCliente(pren, costruisciSMSRifiuto(pren, alternativi));
       }
     }
-    res.json({ ok: true, prenotazione: pren || { id: Number(id), stato }, linkCliente });
+    res.json({ ok: true, prenotazione: pren || { id: Number(id), stato }, linkCliente, smsInviato });
   } catch (err) {
     console.error('[POST /api/admin/prenotazioni/stato]', err);
     res.status(500).json({ ok: false, messaggio: 'Errore server.' });
