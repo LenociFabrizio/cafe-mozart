@@ -223,18 +223,16 @@ document.addEventListener('DOMContentLoaded', () => {
      ========================================================== */
   function opzioniPiatti(selectedVal) {
     let html = `<option value="">${t('choose_dish')}</option>`;
-    if (DISHES_GIORNO.length) {
+    const disponibili = DISHES_GIORNO.filter(d => d.stato !== 'esaurito');
+    if (disponibili.length) {
       html += `<optgroup label="${t('cat_giorno')}">`;
       DISHES_GIORNO.forEach((d, i) => {
-        // I piatti esauriti restano selezionabili ma segnalati
+        if (d.stato === 'esaurito') return;
         const val = `giorno|${i}`;
-        const suffix = d.stato === 'esaurito' ? ` (${t('dish_sold_out')})` : '';
-        html += `<option value="${val}" ${val === selectedVal ? 'selected' : ''}>${esc(d.nome)}${suffix}</option>`;
+        html += `<option value="${val}" ${val === selectedVal ? 'selected' : ''}>${esc(d.nome)}</option>`;
       });
       html += `</optgroup>`;
     }
-    // Nota: l'opzione generica "Drink List" è stata rimossa. La scelta è
-    // limitata a "nessuna pietanza" oppure ai piatti del Menu del Giorno.
     return html;
   }
 
