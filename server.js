@@ -496,14 +496,22 @@ async function inviaSMS(numeroDest, testo) {
 }
 
 function costruisciSMSConferma(pren) {
-  const p = Number(pren.persone) === 1 ? 'persona' : 'persone';
-  return `Gentile ${pren.nome}, la Sua prenotazione presso Bistrout & Café Mozart per ${pren.persone} ${p} il ${pren.data} alle ${pren.orario} è stata CONFERMATA. La aspettiamo!`;
+  return [
+    `✅ Bistrout & Café Mozart`,
+    `👤 ${pren.nome} · 👥 ${pren.persone}p · 📅 ${pren.data} · 🕐 ${pren.orario}`,
+    `Prenotazione confermata / Reservation confirmed 🎉`
+  ].join('\n');
 }
 
 function costruisciSMSRifiuto(pren, alternativi = []) {
-  const proposta = alternativi.length
-    ? ` Le proponiamo questi orari alternativi: ${alternativi.join(', ')}.` : '';
-  return `Gentile ${pren.nome}, siamo spiacenti ma non possiamo accogliere la Sua prenotazione del ${pren.data} alle ${pren.orario}.${proposta} Per assistenza ci contatti telefonicamente. Bistrout & Café Mozart.`;
+  const alt = alternativi.length ? `⏰ ${alternativi.join(' / ')}` : '';
+  return [
+    `❌ Bistrout & Café Mozart`,
+    `👤 ${pren.nome} · 📅 ${pren.data} · 🕐 ${pren.orario}`,
+    `Non disponibile / Not available`,
+    alt,
+    `📞 +39 3334867216`
+  ].filter(Boolean).join('\n');
 }
 
 /* ============================================================
