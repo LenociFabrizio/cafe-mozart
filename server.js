@@ -42,6 +42,10 @@ const TWILIO_AUTH_TOKEN  = process.env.TWILIO_AUTH_TOKEN  || '';
 const TWILIO_FROM_NUMBER = process.env.TWILIO_FROM_NUMBER || '';
 const TWILIO_ATTIVO      = !!(TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN && TWILIO_FROM_NUMBER);
 
+const WA_TOKEN    = process.env.WHATSAPP_TOKEN    || '';
+const WA_PHONE_ID = process.env.WHATSAPP_PHONE_ID || '';
+const WA_ATTIVO   = !!(WA_TOKEN && WA_PHONE_ID);
+
 if (!process.env.DATABASE_URL) {
   console.warn('  [db] ATTENZIONE: DATABASE_URL non impostata. Le API dati non funzioneranno.');
 }
@@ -52,10 +56,12 @@ if (TELEGRAM_ATTIVO) {
   console.log('  [notifiche] Credenziali Telegram assenti: modalità simulazione (log).');
 }
 
-if (TWILIO_ATTIVO) {
+if (WA_ATTIVO) {
+  console.log('  [whatsapp] Meta Cloud API attiva — phone ID:', WA_PHONE_ID);
+} else if (TWILIO_ATTIVO) {
   console.log('  [sms] Twilio attivo — da:', TWILIO_FROM_NUMBER);
 } else {
-  console.log('  [sms] Credenziali Twilio assenti: SMS in modalità simulazione (log).');
+  console.log('  [notifica-cliente] Nessun provider configurato: messaggi simulati su log.');
 }
 
 /* Connessione al database Neon (HTTP-based, ottimale per serverless) */
@@ -455,6 +461,64 @@ async function notificaTitolare(prenotazione) {
 }
 
 /* ============================================================
+ *  WHATSAPP (Meta Cloud API — gratuito fino a 1000 conv/mese)
+ * ========================================================== */
+async function inviaWhatsApp(numeroDest, templateName, parametri) {
+  const numero = normalizzaTelefono(numeroDest).replace('+', '');
+  if (!WA_ATTIVO) {
+    console.log(`[whatsapp][SIMULAZIONE] template=${templateName} a ${numero} params=${JSON.stringify(parametri)}`);
+    return false;
+  }
+  try {
+    const resp = await fetch(`https://graph.facebook.com/v21.0/${WA_PHONE_ID}/messages`, {
+      method:  'POST',
+      headers: { 'Authorization': `Bearer ${WA_TOKEN}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messaging_product: 'whatsapp',
+        to:   numero,
+        type: 'template',
+        template: {
+          name:     templateName,
+          language: { code: 'it' },
+          components: [{
+            type:       'body',
+            parameters: parametri.map(p => ({ type: 'text', text: String(p) }))
+          }]
+        }
+      })
+    });
+    const data = await resp.json();
+    if (!resp.ok || data.error) {
+      console.error('[whatsapp] ERRORE Meta:', data.error?.message || resp.statusText);
+      return false;
+    }
+    console.log('[whatsapp] Inviato a', numero, '— msg ID:', data.messages?.[0]?.id);
+    return true;
+  } catch (err) {
+    console.error('[whatsapp] ERRORE rete:', err?.message || err);
+    return false;
+  }
+}
+
+/* Dispatcher: prova WhatsApp, poi SMS Twilio, poi log */
+async function inviaNotificaCliente(pren, tipo, alternativi = []) {
+  if (!pren?.telefono) return false;
+  if (tipo === 'conferma') {
+    if (WA_ATTIVO)
+      return inviaWhatsApp(pren.telefono, 'cafe_mozart_conferma',
+        [pren.nome, pren.persone, pren.data, pren.orario]);
+    return inviaSMS(pren.telefono, costruisciSMSConferma(pren));
+  }
+  if (tipo === 'rifiuto') {
+    if (WA_ATTIVO)
+      return inviaWhatsApp(pren.telefono, 'cafe_mozart_rifiuto',
+        [pren.nome, pren.data, pren.orario]);
+    return inviaSMS(pren.telefono, costruisciSMSRifiuto(pren, alternativi));
+  }
+  return false;
+}
+
+/* ============================================================
  *  SMS (Twilio REST API — no SDK)
  * ========================================================== */
 function normalizzaTelefono(raw) {
@@ -694,15 +758,13 @@ app.post('/api/telegram/webhook', async (req, res) => {
       })
     }).catch(() => {});
 
-    // Invia SMS al cliente
-    if (pren.telefono) {
-      if (nuovoStato === 'confermata') {
-        await inviaSMS(pren.telefono, costruisciSMSConferma(pren));
-      } else {
-        const alternativi = disponibilitaGiorno(lista, pren.data)
-          .filter(s => s.liberi >= pren.persone).map(s => s.orario);
-        await inviaSMS(pren.telefono, costruisciSMSRifiuto(pren, alternativi));
-      }
+    // Invia WhatsApp / SMS al cliente
+    if (nuovoStato === 'confermata') {
+      await inviaNotificaCliente(pren, 'conferma');
+    } else {
+      const alternativi = disponibilitaGiorno(lista, pren.data)
+        .filter(s => s.liberi >= pren.persone).map(s => s.orario);
+      await inviaNotificaCliente(pren, 'rifiuto', alternativi);
     }
   } catch (err) {
     console.error('[telegram/webhook] Errore:', err);
@@ -1003,20 +1065,20 @@ app.post('/api/admin/prenotazioni/stato', async (req, res) => {
     const lista = await leggiPrenotazioni();
     const pren  = lista.find(p => String(p.id) === String(id));
 
-    let linkCliente = null;
-    let smsInviato  = false;
+    let notificaInviata = false;
+    let linkCliente     = null;
     if (pren?.telefono) {
       if (stato === 'confermata') {
-        smsInviato  = await inviaSMS(pren.telefono, costruisciSMSConferma(pren));
-        linkCliente = linkMessaggioCliente(pren, costruisciSMSConferma(pren));
+        notificaInviata = await inviaNotificaCliente(pren, 'conferma');
+        if (!notificaInviata) linkCliente = linkMessaggioCliente(pren, costruisciSMSConferma(pren));
       } else if (stato === 'rifiutata') {
         const alternativi = disponibilitaGiorno(lista, pren.data)
           .filter(s => s.liberi >= pren.persone).map(s => s.orario);
-        smsInviato  = await inviaSMS(pren.telefono, costruisciSMSRifiuto(pren, alternativi));
-        linkCliente = linkMessaggioCliente(pren, costruisciSMSRifiuto(pren, alternativi));
+        notificaInviata = await inviaNotificaCliente(pren, 'rifiuto', alternativi);
+        if (!notificaInviata) linkCliente = linkMessaggioCliente(pren, costruisciSMSRifiuto(pren, alternativi));
       }
     }
-    res.json({ ok: true, prenotazione: pren || { id: Number(id), stato }, linkCliente, smsInviato });
+    res.json({ ok: true, prenotazione: pren || { id: Number(id), stato }, linkCliente, notificaInviata });
   } catch (err) {
     console.error('[POST /api/admin/prenotazioni/stato]', err);
     res.status(500).json({ ok: false, messaggio: 'Errore server.' });
