@@ -34,15 +34,15 @@ const PORT = process.env.PORT || 3000;
  * ========================================================== */
 const ADMIN_PASSWORD     = process.env.ADMIN_PASSWORD     || 'mozart2024';
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
-const TELEGRAM_CHAT_ID   = process.env.TELEGRAM_CHAT_ID   || '';
-const TELEGRAM_ATTIVO    = !!(TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID);
+const TELEGRAM_CHAT_IDS  = (process.env.TELEGRAM_CHAT_ID || '').split(',').map(s => s.trim()).filter(Boolean);
+const TELEGRAM_ATTIVO    = !!(TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_IDS.length);
 
 if (!process.env.DATABASE_URL) {
   console.warn('  [db] ATTENZIONE: DATABASE_URL non impostata. Le API dati non funzioneranno.');
 }
 
 if (TELEGRAM_ATTIVO) {
-  console.log('  [notifiche] Telegram attivo — chat ID:', TELEGRAM_CHAT_ID);
+  console.log('  [notifiche] Telegram attivo — chat IDs:', TELEGRAM_CHAT_IDS.join(', '));
 } else {
   console.log('  [notifiche] Credenziali Telegram assenti: modalità simulazione (log).');
 }
@@ -395,29 +395,32 @@ async function inviaTelegram(testoHtml) {
     console.log('--- messaggio ---\n' + testoHtml.replace(/<\/?[^>]+>/g, '') + '\n-----------------');
     return false;
   }
-  try {
-    const url  = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-    const resp = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id:                 TELEGRAM_CHAT_ID,
-        text:                    testoHtml,
-        parse_mode:              'HTML',
-        disable_web_page_preview: true
-      })
-    });
-    const data = await resp.json();
-    if (!resp.ok || !data.ok) {
-      console.error('[notifiche] ERRORE Telegram:', data.description || resp.statusText);
-      return false;
+  const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+  let almenoUno = false;
+  for (const chatId of TELEGRAM_CHAT_IDS) {
+    try {
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id:                  chatId,
+          text:                     testoHtml,
+          parse_mode:               'HTML',
+          disable_web_page_preview: true
+        })
+      });
+      const data = await resp.json();
+      if (!resp.ok || !data.ok) {
+        console.error(`[notifiche] ERRORE Telegram chat ${chatId}:`, data.description || resp.statusText);
+      } else {
+        console.log(`[notifiche] Telegram inviato a ${chatId} — message_id:`, data.result.message_id);
+        almenoUno = true;
+      }
+    } catch (err) {
+      console.error(`[notifiche] ERRORE rete Telegram chat ${chatId}:`, err?.message || err);
     }
-    console.log('[notifiche] Telegram inviato — message_id:', data.result.message_id);
-    return true;
-  } catch (err) {
-    console.error('[notifiche] ERRORE rete Telegram:', err?.message || err);
-    return false;
   }
+  return almenoUno;
 }
 
 async function notificaTitolare(prenotazione) {
