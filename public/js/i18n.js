@@ -1208,6 +1208,218 @@ const TRANSLATIONS = {
   }
 };
 
+/* ============================================================
+   Chiavi aggiuntive — sezione "Cosa Offriamo" (4 caroselli) e
+   "Menu Bistrout". Tenute separate e unite a TRANSLATIONS per
+   non duplicare i blocchi lingua e facilitarne la manutenzione.
+   Le lingue mancanti ricadono automaticamente sull'italiano.
+   ============================================================ */
+const EXTRA_TRANSLATIONS = {
+  "it": {
+    "nav_menu_bistrout": "Menu Bistrout",
+    "offriamo_eyebrow": "Cosa offriamo",
+    "offriamo_title": "Tutto il gusto, dal mattino alla sera",
+    "offriamo_lead": "Quattro esperienze pensate per ogni momento della giornata, dalla colazione salata agli eventi privati.",
+    "cat1_title": "Colazioni Salate / Brunch",
+    "cat1_desc": "Toast gourmet, uova, club sandwich e pancake salati: il modo più goloso di iniziare la giornata, anche a tarda mattina.",
+    "cat2_title": "Pasticceria / Prima Colazione / Caffetteria",
+    "cat2_desc": "Croissant e dolci artigianali, cappuccini cremosi e caffè d'autore per una colazione dolce e raffinata.",
+    "cat3_title": "Bistrout",
+    "cat3_desc": "Il Menu del Giorno e i piatti della tradizione, per un pranzo veloce, genuino e curato in ogni dettaglio.",
+    "cat4_title": "Servizio Catering / Eventi Privati",
+    "cat4_desc": "Organizziamo catering ed eventi privati su misura, portando il gusto e l'eleganza del nostro bistrot ovunque tu voglia.",
+    "menus_eyebrow": "Le nostre carte",
+    "menus_title": "Sfoglia i nostri menu",
+    "menu_bistrout_eyebrow": "Il nostro bistrot",
+    "menu_bistrout_title": "Menu Bistrout",
+    "menu_bistrout_lead": "Scopri i piatti del nostro bistrot, sempre aggiornati.",
+    "menu_bistrout_view": "Sfoglia il Menu Bistrout",
+    "carousel_prev": "Immagine precedente",
+    "carousel_next": "Immagine successiva"
+  },
+  "en": {
+    "nav_menu_bistrout": "Bistrout Menu",
+    "offriamo_eyebrow": "What we offer",
+    "offriamo_title": "All the flavour, from morning to night",
+    "offriamo_lead": "Four experiences for every moment of the day, from a savoury breakfast to private events.",
+    "cat1_title": "Savoury Breakfasts / Brunch",
+    "cat1_desc": "Gourmet toasts, eggs, club sandwiches and savoury pancakes: the tastiest way to start the day, even late morning.",
+    "cat2_title": "Pastry / Breakfast / Coffee Bar",
+    "cat2_desc": "Artisan croissants and cakes, creamy cappuccinos and signature coffee for a sweet, refined breakfast.",
+    "cat3_title": "Bistrout",
+    "cat3_desc": "The Daily Menu and traditional dishes, for a quick, genuine lunch crafted in every detail.",
+    "cat4_title": "Catering Service / Private Events",
+    "cat4_desc": "We arrange bespoke catering and private events, bringing the taste and elegance of our bistro wherever you wish.",
+    "menus_eyebrow": "Our menus",
+    "menus_title": "Browse our menus",
+    "menu_bistrout_eyebrow": "Our bistro",
+    "menu_bistrout_title": "Bistrout Menu",
+    "menu_bistrout_lead": "Discover our bistro's dishes, always up to date.",
+    "menu_bistrout_view": "Browse the Bistrout Menu",
+    "carousel_prev": "Previous image",
+    "carousel_next": "Next image"
+  },
+  "fr": {
+    "nav_menu_bistrout": "Menu Bistrout",
+    "offriamo_eyebrow": "Ce que nous proposons",
+    "offriamo_title": "Toute la saveur, du matin au soir",
+    "offriamo_lead": "Quatre expériences pensées pour chaque moment de la journée, du petit-déjeuner salé aux événements privés.",
+    "cat1_title": "Petits-déjeuners salés / Brunch",
+    "cat1_desc": "Toasts gourmands, œufs, club sandwichs et pancakes salés : la façon la plus gourmande de commencer la journée, même en fin de matinée.",
+    "cat2_title": "Pâtisserie / Petit-déjeuner / Cafétéria",
+    "cat2_desc": "Croissants et pâtisseries artisanales, cappuccinos crémeux et cafés d'auteur pour un petit-déjeuner doux et raffiné.",
+    "cat3_title": "Bistrout",
+    "cat3_desc": "Le Menu du Jour et les plats de tradition, pour un déjeuner rapide, authentique et soigné dans les moindres détails.",
+    "cat4_title": "Service traiteur / Événements privés",
+    "cat4_desc": "Nous organisons traiteur et événements privés sur mesure, en apportant le goût et l'élégance de notre bistrot où vous le souhaitez.",
+    "menus_eyebrow": "Nos cartes",
+    "menus_title": "Consultez nos menus",
+    "menu_bistrout_eyebrow": "Notre bistrot",
+    "menu_bistrout_title": "Menu Bistrout",
+    "menu_bistrout_lead": "Découvrez les plats de notre bistrot, toujours à jour.",
+    "menu_bistrout_view": "Consulter le Menu Bistrout",
+    "carousel_prev": "Image précédente",
+    "carousel_next": "Image suivante"
+  },
+  "es": {
+    "nav_menu_bistrout": "Menú Bistrout",
+    "offriamo_eyebrow": "Qué ofrecemos",
+    "offriamo_title": "Todo el sabor, de la mañana a la noche",
+    "offriamo_lead": "Cuatro experiencias pensadas para cada momento del día, del desayuno salado a los eventos privados.",
+    "cat1_title": "Desayunos salados / Brunch",
+    "cat1_desc": "Tostadas gourmet, huevos, club sandwiches y tortitas saladas: la forma más deliciosa de empezar el día, incluso a media mañana.",
+    "cat2_title": "Pastelería / Desayuno / Cafetería",
+    "cat2_desc": "Croissants y dulces artesanales, cappuccinos cremosos y café de autor para un desayuno dulce y refinado.",
+    "cat3_title": "Bistrout",
+    "cat3_desc": "El Menú del Día y los platos de la tradición, para un almuerzo rápido, genuino y cuidado en cada detalle.",
+    "cat4_title": "Servicio de catering / Eventos privados",
+    "cat4_desc": "Organizamos catering y eventos privados a medida, llevando el sabor y la elegancia de nuestro bistró donde quieras.",
+    "menus_eyebrow": "Nuestras cartas",
+    "menus_title": "Consulta nuestros menús",
+    "menu_bistrout_eyebrow": "Nuestro bistró",
+    "menu_bistrout_title": "Menú Bistrout",
+    "menu_bistrout_lead": "Descubre los platos de nuestro bistró, siempre actualizados.",
+    "menu_bistrout_view": "Consultar el Menú Bistrout",
+    "carousel_prev": "Imagen anterior",
+    "carousel_next": "Imagen siguiente"
+  },
+  "de": {
+    "nav_menu_bistrout": "Bistrout-Menü",
+    "offriamo_eyebrow": "Was wir bieten",
+    "offriamo_title": "Voller Geschmack, von morgens bis abends",
+    "offriamo_lead": "Vier Erlebnisse für jeden Moment des Tages, vom herzhaften Frühstück bis zu privaten Events.",
+    "cat1_title": "Herzhaftes Frühstück / Brunch",
+    "cat1_desc": "Gourmet-Toasts, Eier, Club-Sandwiches und herzhafte Pancakes: der genussvollste Start in den Tag, auch am späten Vormittag.",
+    "cat2_title": "Patisserie / Frühstück / Café",
+    "cat2_desc": "Handwerkliche Croissants und Kuchen, cremige Cappuccini und edler Kaffee für ein süßes, raffiniertes Frühstück.",
+    "cat3_title": "Bistrout",
+    "cat3_desc": "Das Tagesmenü und traditionelle Gerichte für ein schnelles, echtes und bis ins Detail gepflegtes Mittagessen.",
+    "cat4_title": "Catering-Service / Private Events",
+    "cat4_desc": "Wir organisieren maßgeschneidertes Catering und private Events und bringen den Geschmack und die Eleganz unseres Bistros überallhin.",
+    "menus_eyebrow": "Unsere Karten",
+    "menus_title": "Durchblättern Sie unsere Menüs",
+    "menu_bistrout_eyebrow": "Unser Bistro",
+    "menu_bistrout_title": "Bistrout-Menü",
+    "menu_bistrout_lead": "Entdecken Sie die Gerichte unseres Bistros, stets aktuell.",
+    "menu_bistrout_view": "Bistrout-Menü ansehen",
+    "carousel_prev": "Vorheriges Bild",
+    "carousel_next": "Nächstes Bild"
+  },
+  "zh": {
+    "nav_menu_bistrout": "小酒馆菜单",
+    "offriamo_eyebrow": "我们提供",
+    "offriamo_title": "从清晨到夜晚，尽享美味",
+    "offriamo_lead": "为一天中的每个时刻精心打造的四种体验，从咸味早餐到私人活动。",
+    "cat1_title": "咸味早餐 / 早午餐",
+    "cat1_desc": "美味吐司、鸡蛋、总汇三明治和咸味松饼：开启一天最美味的方式，即使在上午晚些时候。",
+    "cat2_title": "糕点 / 早餐 / 咖啡吧",
+    "cat2_desc": "手工羊角包和甜点、绵密的卡布奇诺以及招牌咖啡，带来甜美而精致的早餐。",
+    "cat3_title": "小酒馆",
+    "cat3_desc": "每日菜单与传统菜肴，带来快捷、地道且处处用心的午餐。",
+    "cat4_title": "餐饮服务 / 私人活动",
+    "cat4_desc": "我们提供量身定制的餐饮与私人活动，将我们小酒馆的美味与优雅带到您想要的任何地方。",
+    "menus_eyebrow": "我们的菜单",
+    "menus_title": "浏览我们的菜单",
+    "menu_bistrout_eyebrow": "我们的小酒馆",
+    "menu_bistrout_title": "小酒馆菜单",
+    "menu_bistrout_lead": "探索我们小酒馆的菜品，时刻更新。",
+    "menu_bistrout_view": "浏览小酒馆菜单",
+    "carousel_prev": "上一张图片",
+    "carousel_next": "下一张图片"
+  },
+  "pl": {
+    "nav_menu_bistrout": "Menu Bistrout",
+    "offriamo_eyebrow": "Co oferujemy",
+    "offriamo_title": "Pełnia smaku, od rana do wieczora",
+    "offriamo_lead": "Cztery doświadczenia na każdą porę dnia, od wytrawnego śniadania po prywatne wydarzenia.",
+    "cat1_title": "Wytrawne śniadania / Brunch",
+    "cat1_desc": "Tosty gourmet, jajka, club sandwicze i wytrawne pancake'i: najsmaczniejszy sposób na rozpoczęcie dnia, także późnym rankiem.",
+    "cat2_title": "Cukiernia / Śniadania / Kawiarnia",
+    "cat2_desc": "Rzemieślnicze rogaliki i ciasta, kremowe cappuccino i autorska kawa na słodkie, wykwintne śniadanie.",
+    "cat3_title": "Bistrout",
+    "cat3_desc": "Menu Dnia i dania tradycyjne na szybki, autentyczny i dopracowany w każdym szczególe lunch.",
+    "cat4_title": "Catering / Imprezy prywatne",
+    "cat4_desc": "Organizujemy catering i prywatne wydarzenia na miarę, niosąc smak i elegancję naszego bistro tam, gdzie chcesz.",
+    "menus_eyebrow": "Nasze karty",
+    "menus_title": "Przeglądaj nasze menu",
+    "menu_bistrout_eyebrow": "Nasze bistro",
+    "menu_bistrout_title": "Menu Bistrout",
+    "menu_bistrout_lead": "Odkryj dania naszego bistro, zawsze aktualne.",
+    "menu_bistrout_view": "Przeglądaj Menu Bistrout",
+    "carousel_prev": "Poprzednie zdjęcie",
+    "carousel_next": "Następne zdjęcie"
+  },
+  "ru": {
+    "nav_menu_bistrout": "Меню бистро",
+    "offriamo_eyebrow": "Что мы предлагаем",
+    "offriamo_title": "Весь вкус — с утра до вечера",
+    "offriamo_lead": "Четыре впечатления для любого момента дня — от сытного завтрака до частных мероприятий.",
+    "cat1_title": "Сытные завтраки / Бранч",
+    "cat1_desc": "Тосты гурмэ, яйца, клаб-сэндвичи и сытные панкейки: самый вкусный способ начать день, даже поздним утром.",
+    "cat2_title": "Кондитерская / Завтрак / Кофейня",
+    "cat2_desc": "Ремесленные круассаны и десерты, нежный капучино и авторский кофе для сладкого и изысканного завтрака.",
+    "cat3_title": "Бистро",
+    "cat3_desc": "Меню дня и блюда традиции для быстрого, искреннего и продуманного до мелочей обеда.",
+    "cat4_title": "Кейтеринг / Частные мероприятия",
+    "cat4_desc": "Организуем кейтеринг и частные мероприятия под ключ, принося вкус и элегантность нашего бистро туда, куда пожелаете.",
+    "menus_eyebrow": "Наши карты",
+    "menus_title": "Просмотрите наши меню",
+    "menu_bistrout_eyebrow": "Наше бистро",
+    "menu_bistrout_title": "Меню бистро",
+    "menu_bistrout_lead": "Откройте для себя блюда нашего бистро, всегда актуальные.",
+    "menu_bistrout_view": "Открыть меню бистро",
+    "carousel_prev": "Предыдущее изображение",
+    "carousel_next": "Следующее изображение"
+  },
+  "pt": {
+    "nav_menu_bistrout": "Menu Bistrout",
+    "offriamo_eyebrow": "O que oferecemos",
+    "offriamo_title": "Todo o sabor, da manhã à noite",
+    "offriamo_lead": "Quatro experiências pensadas para cada momento do dia, do pequeno-almoço salgado aos eventos privados.",
+    "cat1_title": "Pequenos-almoços salgados / Brunch",
+    "cat1_desc": "Tostas gourmet, ovos, club sandwiches e panquecas salgadas: a forma mais deliciosa de começar o dia, mesmo a meio da manhã.",
+    "cat2_title": "Pastelaria / Pequeno-almoço / Cafetaria",
+    "cat2_desc": "Croissants e doces artesanais, cappuccinos cremosos e café de autor para um pequeno-almoço doce e requintado.",
+    "cat3_title": "Bistrout",
+    "cat3_desc": "O Menu do Dia e os pratos da tradição, para um almoço rápido, genuíno e cuidado em cada detalhe.",
+    "cat4_title": "Serviço de catering / Eventos privados",
+    "cat4_desc": "Organizamos catering e eventos privados à medida, levando o sabor e a elegância do nosso bistrô onde quiser.",
+    "menus_eyebrow": "As nossas cartas",
+    "menus_title": "Consulte os nossos menus",
+    "menu_bistrout_eyebrow": "O nosso bistrô",
+    "menu_bistrout_title": "Menu Bistrout",
+    "menu_bistrout_lead": "Descubra os pratos do nosso bistrô, sempre atualizados.",
+    "menu_bistrout_view": "Consultar o Menu Bistrout",
+    "carousel_prev": "Imagem anterior",
+    "carousel_next": "Imagem seguinte"
+  }
+};
+
+/* Unisce le chiavi aggiuntive ai dizionari principali. */
+Object.keys(EXTRA_TRANSLATIONS).forEach(lang => {
+  if (TRANSLATIONS[lang]) Object.assign(TRANSLATIONS[lang], EXTRA_TRANSLATIONS[lang]);
+});
+
 /* Lingue che usano il formato orario AM/PM (le altre usano 24h). */
 const AMPM_LANGS = ['en', 'zh'];
 
@@ -1257,6 +1469,9 @@ window.I18N = {
     });
     document.querySelectorAll('[data-i18n-ph]').forEach(el => {
       el.placeholder = this.t(el.getAttribute('data-i18n-ph'));
+    });
+    document.querySelectorAll('[data-i18n-aria]').forEach(el => {
+      el.setAttribute('aria-label', this.t(el.getAttribute('data-i18n-aria')));
     });
     try { localStorage.setItem('lingua', this.lang); } catch (e) {}
     document.dispatchEvent(new CustomEvent('linguaCambiata', { detail: this.lang }));

@@ -75,16 +75,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ============================================================
      MENU PDF — visualizzazione INLINE (no download)
+     Due carte: Drink List e Menu Bistrout. Stesso visualizzatore
+     modale, parametrizzato per URL del PDF.
      ========================================================== */
-  const menuArea = document.getElementById('menuArea');
   const pdfModal = document.getElementById('pdfModal');
   const pdfFrame = document.getElementById('pdfFrame');
   const pdfClose = document.getElementById('pdfClose');
 
-  function aprePdf() {
+  function aprePdf(url) {
     // Parametri PDF: nasconde la toolbar (incluso il tasto download nei viewer
     // che lo rispettano). Il contenuto resta visibile, navigabile e zoomabile.
-    pdfFrame.src = '/menu.pdf#toolbar=0&navpanes=0&view=FitH';
+    pdfFrame.src = `${url}#toolbar=0&navpanes=0&view=FitH`;
     pdfModal.classList.add('open');
     pdfModal.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
@@ -99,16 +100,94 @@ document.addEventListener('DOMContentLoaded', () => {
   if (pdfModal) pdfModal.addEventListener('click', (e) => { if (e.target === pdfModal) chiudePdf(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') chiudePdf(); });
 
-  function renderMenu(disponibile) {
-    if (!menuArea) return;
-    if (disponibile) {
-      menuArea.innerHTML = `<button type="button" class="btn btn-gold" id="btnMenuView">${t('menu_view')}</button>`;
-      document.getElementById('btnMenuView').addEventListener('click', aprePdf);
+  // Stato di ogni menu, così da poter ri-renderizzare al cambio lingua.
+  const MENU_CARDS = [
+    { area: document.getElementById('menuArea'),         tipo: 'drink',    url: '/menu.pdf',          viewKey: 'menu_view',          disponibile: false },
+    { area: document.getElementById('menuBistroutArea'), tipo: 'bistrout', url: '/menu-bistrout.pdf', viewKey: 'menu_bistrout_view', disponibile: false }
+  ];
+
+  function renderMenuCard(card) {
+    if (!card.area) return;
+    if (card.disponibile) {
+      card.area.innerHTML = `<button type="button" class="btn btn-gold">${t(card.viewKey)}</button>`;
+      card.area.querySelector('button').addEventListener('click', () => aprePdf(card.url));
     } else {
-      menuArea.innerHTML = `<p class="menu-unavailable">${t('menu_unavailable')}</p>`;
+      card.area.innerHTML = `<p class="menu-unavailable">${t('menu_unavailable')}</p>`;
     }
   }
-  fetch('/api/menu').then(r => r.json()).then(({ disponibile }) => renderMenu(disponibile)).catch(() => renderMenu(false));
+
+  MENU_CARDS.forEach(card => {
+    if (!card.area) return;
+    fetch('/api/menu?tipo=' + card.tipo)
+      .then(r => r.json())
+      .then(({ disponibile }) => { card.disponibile = !!disponibile; renderMenuCard(card); })
+      .catch(() => { card.disponibile = false; renderMenuCard(card); });
+  });
+
+  /* ============================================================
+     CAROSELLI — componente riutilizzabile (Cosa Offriamo)
+     Enhance ogni elemento [data-carousel]: dots, frecce, autoplay,
+     swipe touch, pausa al passaggio del mouse, reduce-motion.
+     ========================================================== */
+  function initCarousels() {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    document.querySelectorAll('[data-carousel]').forEach(carousel => {
+      const track  = carousel.querySelector('.carousel-track');
+      const slides = [...carousel.querySelectorAll('.carousel-slide')];
+      if (!track || slides.length === 0) return;
+
+      const dotsWrap = carousel.querySelector('.carousel-dots');
+      const prevBtn  = carousel.querySelector('.carousel-btn.prev');
+      const nextBtn  = carousel.querySelector('.carousel-btn.next');
+      let index = 0;
+      let timer = null;
+
+      const dots = [];
+      if (dotsWrap) {
+        slides.forEach((_, i) => {
+          const dot = document.createElement('button');
+          dot.type = 'button';
+          dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+          dot.setAttribute('aria-label', String(i + 1));
+          dot.addEventListener('click', () => { go(i); restart(); });
+          dotsWrap.appendChild(dot);
+          dots.push(dot);
+        });
+      }
+
+      function go(i) {
+        index = (i + slides.length) % slides.length;
+        track.style.transform = `translateX(-${index * 100}%)`;
+        dots.forEach((d, di) => d.classList.toggle('active', di === index));
+      }
+      const next = () => go(index + 1);
+      const prev = () => go(index - 1);
+
+      if (nextBtn) nextBtn.addEventListener('click', () => { next(); restart(); });
+      if (prevBtn) prevBtn.addEventListener('click', () => { prev(); restart(); });
+
+      function start() { if (!reduce && slides.length > 1 && !timer) timer = setInterval(next, 5000); }
+      function stop()  { if (timer) { clearInterval(timer); timer = null; } }
+      function restart() { stop(); start(); }
+
+      carousel.addEventListener('mouseenter', stop);
+      carousel.addEventListener('mouseleave', start);
+
+      // Swipe su touch
+      let x0 = null;
+      track.addEventListener('touchstart', (e) => { x0 = e.touches[0].clientX; stop(); }, { passive: true });
+      track.addEventListener('touchend', (e) => {
+        if (x0 === null) return;
+        const dx = e.changedTouches[0].clientX - x0;
+        if (Math.abs(dx) > 40) (dx < 0 ? next() : prev());
+        x0 = null; start();
+      }, { passive: true });
+
+      go(0);
+      start();
+    });
+  }
+  initCarousels();
 
   /* ============================================================
      COOKIE BANNER + INFORMATIVA PRIVACY (GDPR)
@@ -418,11 +497,8 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ---------- Aggiornamento al cambio lingua ---------- */
   document.addEventListener('linguaCambiata', () => {
     buildOrario(); renderGridPiatti(); buildGuestDishes();
-    // Aggiorna anche l'etichetta del pulsante menu, se presente
-    const btn = document.getElementById('btnMenuView');
-    if (btn) btn.textContent = t('menu_view');
-    const una = menuArea && menuArea.querySelector('.menu-unavailable');
-    if (una) una.textContent = t('menu_unavailable');
+    // Ri-renderizza entrambe le carte menu con le etichette tradotte
+    MENU_CARDS.forEach(renderMenuCard);
   });
 
   /* ---------- Utility anti-injection ---------- */

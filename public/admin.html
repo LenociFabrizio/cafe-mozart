@@ -167,12 +167,24 @@
     <div class="panel-card pdf-section">
       <h3>Drink List (PDF)</h3>
       <p class="hint">Carica un file <strong>.pdf</strong> con la Drink List completa. Sostituirà quella attuale.</p>
-      <label class="fld">File menu (.pdf)
+      <label class="fld">File Drink List (.pdf)
         <input type="file" id="menuInput" accept="application/pdf,.pdf" />
       </label>
       <button class="btn btn-gold" id="btnMenu">Carica / aggiorna Drink List</button>
       <p class="msg" id="menuMsg"></p>
       <p id="menuStato" style="font-size:.85rem;color:var(--grigio);margin-top:10px;"></p>
+    </div>
+
+    <!-- Menu Bistrout PDF (larghezza piena) -->
+    <div class="panel-card pdf-section">
+      <h3>Menu Bistrout (PDF)</h3>
+      <p class="hint">Carica un file <strong>.pdf</strong> con il Menu Bistrout completo. Sostituirà quello attuale.</p>
+      <label class="fld">File Menu Bistrout (.pdf)
+        <input type="file" id="menuBistroutInput" accept="application/pdf,.pdf" />
+      </label>
+      <button class="btn btn-gold" id="btnMenuBistrout">Carica / aggiorna Menu Bistrout</button>
+      <p class="msg" id="menuBistroutMsg"></p>
+      <p id="menuBistroutStato" style="font-size:.85rem;color:var(--grigio);margin-top:10px;"></p>
     </div>
 
     <!-- Cambio password (larghezza piena) -->
@@ -223,7 +235,8 @@
       loginView.classList.add('hidden');
       panelView.classList.remove('hidden');
       caricaPiatti();
-      aggiornaStatoMenu();
+      aggiornaStatoMenu('drink');
+      aggiornaStatoMenu('bistrout');
     }
 
     /* ----- Logout ----- */
@@ -453,51 +466,63 @@
       if (e.key === 'Enter') { e.preventDefault(); aggiungiPiatto(); }
     }));
 
-    /* ----- Menu PDF: stato e caricamento ----- */
-    const menuMsg = document.getElementById('menuMsg');
-    const menuStato = document.getElementById('menuStato');
+    /* ----- Menu PDF: stato e caricamento (Drink List + Menu Bistrout) ----- */
+    // Configurazione per ogni tipo di PDF: stesso flusso, elementi diversi.
+    const MENU_PDF = {
+      drink:    { url: '/menu.pdf',          input: 'menuInput',         btn: 'btnMenu',         msg: 'menuMsg',         stato: 'menuStato' },
+      bistrout: { url: '/menu-bistrout.pdf', input: 'menuBistroutInput', btn: 'btnMenuBistrout', msg: 'menuBistroutMsg', stato: 'menuBistroutStato' }
+    };
 
-    function aggiornaStatoMenu() {
-      fetch('/api/menu')
+    function aggiornaStatoMenu(tipo) {
+      const cfg = MENU_PDF[tipo];
+      const statoEl = document.getElementById(cfg.stato);
+      fetch('/api/menu?tipo=' + tipo)
         .then(r => r.json())
         .then(({ disponibile }) => {
-          menuStato.innerHTML = disponibile
-            ? 'Menu attuale: <a href="/menu.pdf" target="_blank" style="color:var(--oro)">visualizza PDF</a>'
-            : 'Nessun menu PDF caricato.';
+          statoEl.innerHTML = disponibile
+            ? `PDF attuale: <a href="${cfg.url}" target="_blank" style="color:var(--oro)">visualizza PDF</a>`
+            : 'Nessun PDF caricato.';
         })
-        .catch(() => { menuStato.textContent = ''; });
+        .catch(() => { statoEl.textContent = ''; });
     }
 
-    document.getElementById('btnMenu').addEventListener('click', async () => {
-      const file = document.getElementById('menuInput').files[0];
+    function caricaMenuPdf(tipo) {
+      const cfg = MENU_PDF[tipo];
+      const msgEl = document.getElementById(cfg.msg);
+      const file = document.getElementById(cfg.input).files[0];
       if (!file) {
-        menuMsg.textContent = 'Seleziona prima un file .pdf';
-        menuMsg.className = 'msg error';
+        msgEl.textContent = 'Seleziona prima un file .pdf';
+        msgEl.className = 'msg error';
         return;
       }
-      menuMsg.textContent = 'Caricamento…';
-      menuMsg.className = 'msg';
+      msgEl.textContent = 'Caricamento…';
+      msgEl.className = 'msg';
 
       const fd = new FormData();
       fd.append('file', file);
+      fd.append('tipo', tipo);
       fd.append('password', adminPassword);
 
-      try {
-        const res = await fetch('/api/admin/menu', { method: 'POST', body: fd });
-        const out = await res.json();
-        if (out.ok) {
-          menuMsg.textContent = '✓ ' + out.messaggio;
-          menuMsg.className = 'msg ok';
-          aggiornaStatoMenu();
-        } else {
-          menuMsg.textContent = '✕ ' + (out.messaggio || 'Errore nel caricamento.');
-          menuMsg.className = 'msg error';
-        }
-      } catch {
-        menuMsg.textContent = '✕ Errore di connessione.';
-        menuMsg.className = 'msg error';
-      }
-    });
+      fetch('/api/admin/menu', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(out => {
+          if (out.ok) {
+            msgEl.textContent = '✓ ' + out.messaggio;
+            msgEl.className = 'msg ok';
+            aggiornaStatoMenu(tipo);
+          } else {
+            msgEl.textContent = '✕ ' + (out.messaggio || 'Errore nel caricamento.');
+            msgEl.className = 'msg error';
+          }
+        })
+        .catch(() => {
+          msgEl.textContent = '✕ Errore di connessione.';
+          msgEl.className = 'msg error';
+        });
+    }
+
+    document.getElementById('btnMenu').addEventListener('click', () => caricaMenuPdf('drink'));
+    document.getElementById('btnMenuBistrout').addEventListener('click', () => caricaMenuPdf('bistrout'));
 
     /* ----- Cambio password ----- */
     const pwdMsg = document.getElementById('pwdMsg');

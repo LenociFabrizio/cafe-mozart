@@ -560,22 +560,28 @@ async function inviaSMS(numeroDest, testo) {
 }
 
 function costruisciSMSConferma(pren) {
+  const nome = (pren.nome || '').split(' ')[0] || pren.nome;
   return [
-    `✅ Bistrout & Café Mozart`,
-    `👤 ${pren.nome} · 👥 ${pren.persone}p · 📅 ${pren.data} · 🕐 ${pren.orario}`,
-    `Prenotazione confermata / Reservation confirmed 🎉`
+    `Gentile ${nome}, è un piacere darLe il benvenuto al Bistrout & Café Mozart. ✨`,
+    `La Sua prenotazione è confermata: ${pren.persone} persone · ${pren.data} · ore ${pren.orario}.`,
+    `La attendiamo con piacere. A presto!`,
+    ``,
+    `Dear ${nome}, your reservation is confirmed: ${pren.persone} guests on ${pren.data} at ${pren.orario}. We look forward to welcoming you!`
   ].join('\n');
 }
 
 function costruisciSMSRifiuto(pren, alternativi = []) {
-  const alt = alternativi.length ? `⏰ ${alternativi.join(' / ')}` : '';
+  const nome = (pren.nome || '').split(' ')[0] || pren.nome;
+  const alt  = alternativi.length
+    ? `Saremmo lieti di accoglierLa in un altro orario: ${alternativi.join(' / ')}.`
+    : `Saremmo lieti di trovarLe volentieri un'altra disponibilità.`;
   return [
-    `❌ Bistrout & Café Mozart`,
-    `👤 ${pren.nome} · 📅 ${pren.data} · 🕐 ${pren.orario}`,
-    `Non disponibile / Not available`,
-    alt,
-    `📞 +39 3334867216`
-  ].filter(Boolean).join('\n');
+    `Gentile ${nome}, La ringraziamo per aver scelto il Bistrout & Café Mozart.`,
+    `Con rammarico non possiamo accogliere la Sua richiesta per ${pren.data} alle ${pren.orario}. ${alt}`,
+    `Per qualsiasi esigenza siamo a Sua disposizione al +39 333 4867216. A presto!`,
+    ``,
+    `Dear ${nome}, we're sorry we can't confirm your request for ${pren.data} at ${pren.orario}. We'd be delighted to find an alternative — call us at +39 333 4867216.`
+  ].join('\n');
 }
 
 /* ============================================================
@@ -635,32 +641,45 @@ app.get('/api/piatti', async (req, res) => {
   }
 });
 
-/* Disponibilità menu PDF */
+/* Tipi di menu PDF gestiti → id nella tabella menu_pdf.
+ * 'drink' = Drink List (storico, id 1), 'bistrout' = Menu Bistrout (id 2). */
+const MENU_PDF_IDS = { drink: 1, bistrout: 2 };
+const MENU_PDF_FILE = { drink: 'menu.pdf', bistrout: 'menu-bistrout.pdf' };
+function risolviTipoMenu(tipo) {
+  return MENU_PDF_IDS[tipo] ? tipo : 'drink';
+}
+
+/* Disponibilità menu PDF (?tipo=drink|bistrout, default drink) */
 app.get('/api/menu', async (req, res) => {
+  const tipo = risolviTipoMenu(req.query.tipo);
+  const id   = MENU_PDF_IDS[tipo];
   try {
-    const rows = await sql`SELECT id FROM menu_pdf WHERE id = 1`;
-    res.json({ disponibile: rows.length > 0, url: '/menu.pdf' });
+    const rows = await sql`SELECT id FROM menu_pdf WHERE id = ${id}`;
+    res.json({ disponibile: rows.length > 0, url: '/' + MENU_PDF_FILE[tipo] });
   } catch (err) {
     console.error('[/api/menu]', err);
-    res.json({ disponibile: false, url: '/menu.pdf' });
+    res.json({ disponibile: false, url: '/' + MENU_PDF_FILE[tipo] });
   }
 });
 
 /* Visualizzazione menu PDF (inline, non download) */
-app.get('/menu.pdf', async (req, res) => {
+async function inviaMenuPdf(tipo, res) {
+  const id = MENU_PDF_IDS[tipo];
   try {
-    const rows = await sql`SELECT data_base64 FROM menu_pdf WHERE id = 1`;
+    const rows = await sql`SELECT data_base64 FROM menu_pdf WHERE id = ${id}`;
     if (!rows.length || !rows[0].data_base64)
       return res.status(404).send('Menu non disponibile.');
     const buf = Buffer.from(rows[0].data_base64, 'base64');
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'inline; filename="menu.pdf"');
+    res.setHeader('Content-Disposition', `inline; filename="${MENU_PDF_FILE[tipo]}"`);
     res.send(buf);
   } catch (err) {
-    console.error('[/menu.pdf]', err);
+    console.error(`[/${MENU_PDF_FILE[tipo]}]`, err);
     res.status(500).send('Errore nel caricamento del menu.');
   }
-});
+}
+app.get('/menu.pdf',          (req, res) => inviaMenuPdf('drink', res));
+app.get('/menu-bistrout.pdf', (req, res) => inviaMenuPdf('bistrout', res));
 
 /* POST /api/prenotazioni — prenotazione pubblica (solo oggi) */
 app.post('/api/prenotazioni', async (req, res) => {
@@ -916,16 +935,19 @@ app.post('/api/admin/piatti/elimina', async (req, res) => {
   }
 });
 
-/* Upload menu PDF — salvato come base64 nel DB (compatibile serverless) */
+/* Upload menu PDF — salvato come base64 nel DB (compatibile serverless).
+ * Campo 'tipo' (drink|bistrout) determina quale PDF aggiornare. */
 app.post('/api/admin/menu', uploadPdf.single('file'), async (req, res) => {
   if (!(await verificaPassword(req.body.password)))
     return res.status(401).json({ ok: false, messaggio: 'Password errata.' });
   if (!req.file)
     return res.status(400).json({ ok: false, messaggio: 'Nessun file caricato.' });
+  const tipo = risolviTipoMenu(req.body.tipo);
+  const id   = MENU_PDF_IDS[tipo];
   try {
     const base64 = req.file.buffer.toString('base64');
     await sql`
-      INSERT INTO menu_pdf (id, data_base64, aggiornato_il) VALUES (1, ${base64}, NOW())
+      INSERT INTO menu_pdf (id, data_base64, aggiornato_il) VALUES (${id}, ${base64}, NOW())
       ON CONFLICT (id) DO UPDATE SET data_base64 = EXCLUDED.data_base64, aggiornato_il = NOW()
     `;
     res.json({ ok: true, messaggio: 'Menu PDF aggiornato con successo.' });

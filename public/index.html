@@ -26,10 +26,10 @@
 
       <nav class="nav-links" id="navLinks">
         <a href="#chi-siamo" data-i18n="nav_about">Chi siamo</a>
-        <a href="#salate" data-i18n="salate_title">Colazioni Salate</a>
-        <a href="#servizi" data-i18n="nav_services">Cosa offriamo</a>
+        <a href="#offriamo" data-i18n="nav_services">Cosa offriamo</a>
         <a href="#piatti" data-i18n="nav_dishes">Menu del Giorno</a>
         <a href="#menu" data-i18n="nav_menu">Drink List</a>
+        <a href="#menu-bistrout" data-i18n="nav_menu_bistrout">Menu Bistrout</a>
         <a href="#prenota" data-i18n="nav_book">Prenota</a>
         <a href="#contatti" data-i18n="nav_contact">Contatti</a>
       </nav>
@@ -71,7 +71,7 @@
         <span data-i18n="hero_rating">4,5 su Google · oltre 300 recensioni</span>
       </div>
     </div>
-    <a href="#salate" class="scroll-hint" aria-label="Scorri">↓</a>
+    <a href="#offriamo" class="scroll-hint" aria-label="Scorri">↓</a>
   </section>
 
   <!-- ============================ CHI SIAMO ============================ -->
@@ -103,100 +103,104 @@
     </div>
   </section>
 
-  <!-- ============================ COLAZIONI SALATE (sezione premium) ============================ -->
-  <section class="section salate" id="salate">
+  <!-- ============================ COSA OFFRIAMO ============================ -->
+  <!-- Quattro categorie, ognuna con un carosello immagini indipendente.
+       Il markup è data-driven: lo script enhance ogni [data-carousel]. -->
+  <section class="section offriamo" id="offriamo">
     <div class="container">
       <div class="section-head center">
-        <p class="eyebrow reveal" data-i18n="salate_eyebrow">La nostra specialità</p>
-        <h2 class="reveal" data-i18n="salate_title">Colazioni Salate</h2>
-        <p class="section-lead reveal" data-i18n="salate_lead">Il modo più gustoso di iniziare la giornata. La nostra proposta di punta.</p>
+        <p class="eyebrow reveal" data-i18n="offriamo_eyebrow">Cosa offriamo</p>
+        <h2 class="reveal" data-i18n="offriamo_title">Tutto il gusto, dal mattino alla sera</h2>
+        <p class="section-lead reveal" data-i18n="offriamo_lead">Quattro esperienze pensate per ogni momento della giornata, dalla colazione salata agli eventi privati.</p>
       </div>
-      <div class="grid-salate">
-        <article class="card-salata reveal">
-          <div class="salata-img" style="background-image:url('https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&w=600&q=80')"></div>
-          <div class="salata-body"><h3 data-i18n="salate_1_t">Toast Gourmet</h3><p data-i18n="salate_1_d">Pane artigianale, ingredienti freschi e abbinamenti ricercati.</p></div>
-        </article>
-        <article class="card-salata reveal">
-          <div class="salata-img" style="background-image:url('https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=600&q=80')"></div>
-          <div class="salata-body"><h3 data-i18n="salate_2_t">Croissant Salati</h3><p data-i18n="salate_2_d">Sfoglia fragrante con farciture salate di stagione.</p></div>
-        </article>
-        <article class="card-salata reveal">
-          <div class="salata-img" style="background-image:url('https://images.unsplash.com/photo-1567234669003-dce7a7a88821?auto=format&fit=crop&w=600&q=80')"></div>
-          <div class="salata-body"><h3 data-i18n="salate_3_t">Club Sandwich</h3><p data-i18n="salate_3_d">Il classico a tre piani, ricco e saporito.</p></div>
-        </article>
-        <article class="card-salata reveal">
-          <div class="salata-img" style="background-image:url('https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=600&q=80')"></div>
-          <div class="salata-body"><h3 data-i18n="salate_4_t">Uova</h3><p data-i18n="salate_4_d">Strapazzate, in camicia o alla Benedict, come preferisci.</p></div>
-        </article>
-        <article class="card-salata reveal">
-          <div class="salata-img" style="background-image:url('https://images.unsplash.com/photo-1554520735-0a6b8b6ce8b7?auto=format&fit=crop&w=600&q=80')"></div>
-          <div class="salata-body"><h3 data-i18n="salate_5_t">Pancake Salati</h3><p data-i18n="salate_5_d">Soffici pancake in versione salata, golosi e originali.</p></div>
-        </article>
-        <article class="card-salata reveal">
-          <div class="salata-img" style="background-image:url('https://images.unsplash.com/photo-1592845345249-3b0e2d8d8d22?auto=format&fit=crop&w=600&q=80')"></div>
-          <div class="salata-body"><h3 data-i18n="salate_6_t">Bagel</h3><p data-i18n="salate_6_d">Morbidi bagel farciti, perfetti per brunch e pause sfiziose.</p></div>
-        </article>
-      </div>
-    </div>
-  </section>
 
-  <!-- ============================ SERVIZI ============================ -->
-  <section class="section servizi" id="servizi">
-    <div class="container">
-      <div class="section-head center">
-        <p class="eyebrow reveal" data-i18n="services_eyebrow">Cosa offriamo</p>
-        <h2 class="reveal" data-i18n="services_title">Dal brunch al bistrot, tutto il gusto</h2>
-      </div>
-      <div class="grid-servizi">
-        <article class="card-servizio reveal">
-          <div class="card-icon">
-            <svg viewBox="0 0 32 32" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M6 12h17v8a5 5 0 0 1-5 5h-7a5 5 0 0 1-5-5v-8z"/>
-              <path d="M23 14h2.5a3 3 0 0 1 0 6H23"/>
-              <path d="M11 4c-1 2 1 3 0 5M16 4c-1 2 1 3 0 5M21 4c-1 2 1 3 0 5"/>
-            </svg>
+      <div class="offerte">
+        <!-- 1 · Colazioni Salate / Brunch -->
+        <article class="offerta reveal">
+          <div class="offerta-media">
+            <div class="carousel" data-carousel aria-roledescription="carosello">
+              <div class="carousel-track">
+                <figure class="carousel-slide"><img src="https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&w=900&q=80" alt="Toast gourmet" loading="lazy" /></figure>
+                <figure class="carousel-slide"><img src="https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=900&q=80" alt="Uova alla Benedict" loading="lazy" /></figure>
+                <figure class="carousel-slide"><img src="https://images.unsplash.com/photo-1567234669003-dce7a7a88821?auto=format&fit=crop&w=900&q=80" alt="Club sandwich" loading="lazy" /></figure>
+                <figure class="carousel-slide"><img src="https://images.unsplash.com/photo-1484723091739-30a097e8f929?auto=format&fit=crop&w=900&q=80" alt="Brunch salato" loading="lazy" /></figure>
+              </div>
+              <button type="button" class="carousel-btn prev" data-i18n-aria="carousel_prev" aria-label="Immagine precedente">‹</button>
+              <button type="button" class="carousel-btn next" data-i18n-aria="carousel_next" aria-label="Immagine successiva">›</button>
+              <div class="carousel-dots" aria-hidden="true"></div>
+            </div>
           </div>
-          <h3 data-i18n="svc_breakfast_t">Colazioni Salate</h3>
-          <p data-i18n="svc_breakfast_d">Toast gourmet, uova, club sandwich e pancake salati per iniziare con gusto.</p>
+          <div class="offerta-body">
+            <span class="offerta-num">01</span>
+            <h3 data-i18n="cat1_title">Colazioni Salate / Brunch</h3>
+            <p data-i18n="cat1_desc">Toast gourmet, uova, club sandwich e pancake salati: il modo più goloso di iniziare la giornata, anche a tarda mattina.</p>
+          </div>
         </article>
-        <article class="card-servizio reveal">
-          <div class="card-icon">
-            <svg viewBox="0 0 32 32" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <circle cx="16" cy="16" r="11"/>
-              <path d="M16 9v7l5 3"/>
-            </svg>
+
+        <!-- 2 · Pasticceria / Prima Colazione / Caffetteria -->
+        <article class="offerta reveal">
+          <div class="offerta-media">
+            <div class="carousel" data-carousel aria-roledescription="carosello">
+              <div class="carousel-track">
+                <figure class="carousel-slide"><img src="https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=900&q=80" alt="Croissant artigianali" loading="lazy" /></figure>
+                <figure class="carousel-slide"><img src="https://images.unsplash.com/photo-1572442388796-11668a67e53d?auto=format&fit=crop&w=900&q=80" alt="Cappuccino con latte art" loading="lazy" /></figure>
+                <figure class="carousel-slide"><img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80" alt="Pasticceria fresca" loading="lazy" /></figure>
+                <figure class="carousel-slide"><img src="https://images.unsplash.com/photo-1442512595331-e89e73853f31?auto=format&fit=crop&w=900&q=80" alt="Dolci da colazione" loading="lazy" /></figure>
+              </div>
+              <button type="button" class="carousel-btn prev" data-i18n-aria="carousel_prev" aria-label="Immagine precedente">‹</button>
+              <button type="button" class="carousel-btn next" data-i18n-aria="carousel_next" aria-label="Immagine successiva">›</button>
+              <div class="carousel-dots" aria-hidden="true"></div>
+            </div>
           </div>
-          <h3 data-i18n="svc_coffee_t">Brunch</h3>
-          <p data-i18n="svc_coffee_d">Il meglio della colazione e del pranzo in un unico momento, nel weekend e non solo.</p>
+          <div class="offerta-body">
+            <span class="offerta-num">02</span>
+            <h3 data-i18n="cat2_title">Pasticceria / Prima Colazione / Caffetteria</h3>
+            <p data-i18n="cat2_desc">Croissant e dolci artigianali, cappuccini cremosi e caffè d'autore per una colazione dolce e raffinata.</p>
+          </div>
         </article>
-        <article class="card-servizio reveal">
-          <div class="card-icon">
-            <svg viewBox="0 0 32 32" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M8 13a8 8 0 0 1 16 0v1H8z"/>
-              <path d="M6 18h20M9 14v8a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3v-8"/>
-            </svg>
+
+        <!-- 3 · Bistrout -->
+        <article class="offerta reveal">
+          <div class="offerta-media">
+            <div class="carousel" data-carousel aria-roledescription="carosello">
+              <div class="carousel-track">
+                <figure class="carousel-slide"><img src="https://images.unsplash.com/photo-1559925393-8be0ec4767c8?auto=format&fit=crop&w=900&q=80" alt="Sala del bistrot" loading="lazy" /></figure>
+                <figure class="carousel-slide"><img src="https://images.unsplash.com/photo-1592861956120-e524fc739696?auto=format&fit=crop&w=900&q=80" alt="Piatto impiattato" loading="lazy" /></figure>
+                <figure class="carousel-slide"><img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=900&q=80" alt="Tavola del bistrot" loading="lazy" /></figure>
+                <figure class="carousel-slide"><img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=900&q=80" alt="Ambiente del bistrot" loading="lazy" /></figure>
+              </div>
+              <button type="button" class="carousel-btn prev" data-i18n-aria="carousel_prev" aria-label="Immagine precedente">‹</button>
+              <button type="button" class="carousel-btn next" data-i18n-aria="carousel_next" aria-label="Immagine successiva">›</button>
+              <div class="carousel-dots" aria-hidden="true"></div>
+            </div>
           </div>
-          <h3 data-i18n="svc_pastry_t">Pasticceria</h3>
-          <p data-i18n="svc_pastry_d">Dolci artigianali, croissant e piccola pasticceria preparati ogni giorno.</p>
+          <div class="offerta-body">
+            <span class="offerta-num">03</span>
+            <h3 data-i18n="cat3_title">Bistrout</h3>
+            <p data-i18n="cat3_desc">Il Menu del Giorno e i piatti della tradizione, per un pranzo veloce, genuino e curato in ogni dettaglio.</p>
+          </div>
         </article>
-        <article class="card-servizio reveal">
-          <div class="card-icon">
-            <svg viewBox="0 0 32 32" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M9 4v9a3 3 0 0 0 6 0V4M12 16v12M23 4c-2 1-3 4-3 8s1 5 3 5v11"/>
-            </svg>
+
+        <!-- 4 · Servizio Catering / Eventi Privati -->
+        <article class="offerta reveal">
+          <div class="offerta-media">
+            <div class="carousel" data-carousel aria-roledescription="carosello">
+              <div class="carousel-track">
+                <figure class="carousel-slide"><img src="https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=900&q=80" alt="Evento privato" loading="lazy" /></figure>
+                <figure class="carousel-slide"><img src="https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=900&q=80" alt="Tavola per ricevimento" loading="lazy" /></figure>
+                <figure class="carousel-slide"><img src="https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=900&q=80" alt="Buffet catering" loading="lazy" /></figure>
+                <figure class="carousel-slide"><img src="https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=900&q=80" alt="Servizio catering" loading="lazy" /></figure>
+              </div>
+              <button type="button" class="carousel-btn prev" data-i18n-aria="carousel_prev" aria-label="Immagine precedente">‹</button>
+              <button type="button" class="carousel-btn next" data-i18n-aria="carousel_next" aria-label="Immagine successiva">›</button>
+              <div class="carousel-dots" aria-hidden="true"></div>
+            </div>
           </div>
-          <h3 data-i18n="svc_lunch_t">Bistrout</h3>
-          <p data-i18n="svc_lunch_d">Menu del Giorno e piatti della tradizione per un pranzo veloce e genuino.</p>
-        </article>
-        <article class="card-servizio reveal">
-          <div class="card-icon">
-            <svg viewBox="0 0 32 32" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M4 27V14l12-9 12 9v13"/>
-              <path d="M12 27v-7h8v7"/>
-            </svg>
+          <div class="offerta-body">
+            <span class="offerta-num">04</span>
+            <h3 data-i18n="cat4_title">Servizio Catering / Eventi Privati</h3>
+            <p data-i18n="cat4_desc">Organizziamo catering ed eventi privati su misura, portando il gusto e l'eleganza del nostro bistrot ovunque tu voglia.</p>
           </div>
-          <h3 data-i18n="svc_tables_t">Caffetteria</h3>
-          <p data-i18n="svc_tables_d">Miscele selezionate e caffè d'autore, serviti con cura in ogni tazzina.</p>
         </article>
       </div>
     </div>
@@ -217,22 +221,43 @@
     </div>
   </section>
 
-  <!-- ============================ MENU PDF ============================ -->
+  <!-- ============================ MENU PDF (Drink List + Menu Bistrout) ============================ -->
   <section class="section menu-pdf" id="menu">
-    <div class="container narrow">
-      <div class="menu-card reveal">
-        <div class="menu-icon">
-          <svg viewBox="0 0 32 32" width="38" height="38" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M16 7c-2-1.5-5-2.5-9-2.5v20c4 0 7 1 9 2.5 2-1.5 5-2.5 9-2.5v-20c-4 0-7 1-9 2.5z"/>
-            <path d="M16 7v20"/>
-            <path d="M9 10h3M9 13h3M9 16h3M20 10h3M20 13h3M20 16h3"/>
-          </svg>
+    <div class="container">
+      <div class="section-head center">
+        <p class="eyebrow reveal" data-i18n="menus_eyebrow">Le nostre carte</p>
+        <h2 class="reveal" data-i18n="menus_title">Sfoglia i nostri menu</h2>
+      </div>
+      <div class="menu-grid">
+        <!-- Drink List -->
+        <div class="menu-card reveal">
+          <div class="menu-icon">
+            <svg viewBox="0 0 32 32" width="38" height="38" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M16 7c-2-1.5-5-2.5-9-2.5v20c4 0 7 1 9 2.5 2-1.5 5-2.5 9-2.5v-20c-4 0-7 1-9 2.5z"/>
+              <path d="M16 7v20"/>
+              <path d="M9 10h3M9 13h3M9 16h3M20 10h3M20 13h3M20 16h3"/>
+            </svg>
+          </div>
+          <p class="eyebrow" data-i18n="menu_eyebrow">La nostra carta</p>
+          <h3 data-i18n="menu_title">Drink List</h3>
+          <p class="section-lead" data-i18n="menu_lead">Sfoglia tutte le nostre proposte direttamente da qui, sempre aggiornate.</p>
+          <!-- Pulsante / visualizzatore inline gestito da script.js -->
+          <div id="menuArea"></div>
         </div>
-        <p class="eyebrow" data-i18n="menu_eyebrow">La nostra carta</p>
-        <h2 data-i18n="menu_title">Consulta la Drink List</h2>
-        <p class="section-lead" data-i18n="menu_lead">Sfoglia tutte le nostre proposte direttamente da qui, sempre aggiornate.</p>
-        <!-- Pulsante / visualizzatore inline gestito da script.js -->
-        <div id="menuArea"></div>
+
+        <!-- Menu Bistrout -->
+        <div class="menu-card reveal" id="menu-bistrout">
+          <div class="menu-icon">
+            <svg viewBox="0 0 32 32" width="38" height="38" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 4v9a3 3 0 0 0 6 0V4M12 16v12M23 4c-2 1-3 4-3 8s1 5 3 5v11"/>
+            </svg>
+          </div>
+          <p class="eyebrow" data-i18n="menu_bistrout_eyebrow">Il nostro bistrot</p>
+          <h3 data-i18n="menu_bistrout_title">Menu Bistrout</h3>
+          <p class="section-lead" data-i18n="menu_bistrout_lead">Scopri i piatti del nostro bistrot, sempre aggiornati.</p>
+          <!-- Pulsante / visualizzatore inline gestito da script.js -->
+          <div id="menuBistroutArea"></div>
+        </div>
       </div>
     </div>
   </section>
@@ -241,7 +266,7 @@
   <div class="pdf-modal" id="pdfModal" aria-hidden="true">
     <div class="pdf-modal-inner">
       <button class="pdf-close" id="pdfClose" aria-label="Chiudi">×</button>
-      <iframe id="pdfFrame" title="Drink List — Bistrout &amp; Café Mozart" src=""></iframe>
+      <iframe id="pdfFrame" title="Menu — Bistrout &amp; Café Mozart" src=""></iframe>
     </div>
   </div>
 
@@ -447,8 +472,9 @@
       </div>
       <nav class="footer-nav">
         <a href="#chi-siamo" data-i18n="nav_about">Chi siamo</a>
-        <a href="#servizi" data-i18n="nav_services">Servizi</a>
-        <a href="#menu" data-i18n="nav_menu">Menu</a>
+        <a href="#offriamo" data-i18n="nav_services">Cosa offriamo</a>
+        <a href="#menu" data-i18n="nav_menu">Drink List</a>
+        <a href="#menu-bistrout" data-i18n="nav_menu_bistrout">Menu Bistrout</a>
         <a href="#prenota" data-i18n="nav_book">Prenota</a>
         <a href="#contatti" data-i18n="nav_contact">Contatti</a>
         <a href="#" id="openPrivacyFromFooter" data-i18n="nav_privacy">Privacy</a>

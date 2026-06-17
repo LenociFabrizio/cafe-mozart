@@ -50,7 +50,7 @@ body::before {
 .container { width: 92%; max-width: var(--maxw); margin: 0 auto; position: relative; z-index: 1; }
 .container.narrow { max-width: 760px; }
 .section { padding: 110px 0; position: relative; }
-.section.servizi, .section.prenota, .section.contatti { background: var(--nero-soft); }
+.section.prenota, .section.contatti { background: var(--nero-soft); }
 
 /* ---------- Tipografia titoli ---------- */
 h1, h2, h3 { font-family: var(--display); font-weight: 500; line-height: 1.1; letter-spacing: .3px; }
@@ -186,21 +186,6 @@ button.btn { color: inherit; }
 .facts li span { font-family: var(--display); font-size: 2rem; color: var(--oro); line-height: 1; margin-bottom: 4px; }
 
 /* ============================================================
-   SERVIZI
-   ============================================================ */
-.grid-servizi { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 22px; }
-.card-servizio {
-  background: var(--nero-card); border: 1px solid var(--bordo);
-  border-radius: var(--radius); padding: 38px 28px; text-align: center;
-  transition: transform .4s var(--ease), border-color .4s, box-shadow .4s;
-}
-.card-servizio:hover { transform: translateY(-8px); border-color: var(--oro); box-shadow: 0 20px 40px -20px rgba(0,0,0,.8); }
-.card-icon { font-size: 2rem; color: var(--oro); margin-bottom: 16px; display: inline-flex; align-items: center; justify-content: center; }
-.card-icon svg { display: block; }
-.card-servizio h3 { font-size: 1.5rem; color: var(--crema); margin-bottom: 10px; }
-.card-servizio p { color: var(--grigio); font-size: .92rem; }
-
-/* ============================================================
    PIATTO DEL GIORNO
    ============================================================ */
 .grid-piatti { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 20px; }
@@ -223,14 +208,23 @@ button.btn { color: inherit; }
    SEZIONE MENU PDF
    ============================================================ */
 .menu-pdf { background: var(--nero); }
+.menu-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px; align-items: stretch;
+}
 .menu-card {
   background: linear-gradient(160deg, var(--nero-card), var(--nero-soft));
   border: 1px solid var(--bordo); border-radius: var(--radius);
-  padding: 56px 40px; text-align: center;
+  padding: 48px 36px; text-align: center;
+  display: flex; flex-direction: column; align-items: center;
+  transition: transform .4s var(--ease), border-color .4s, box-shadow .4s;
 }
+.menu-card:hover { transform: translateY(-6px); border-color: var(--oro); box-shadow: 0 24px 50px -24px rgba(201,164,76,.45); }
 .menu-card .eyebrow { margin-bottom: 12px; }
-.menu-card h2 { margin-bottom: 12px; }
+.menu-card h2, .menu-card h3 { margin-bottom: 12px; color: var(--crema); }
+.menu-card h3 { font-size: 1.9rem; }
 .menu-card .section-lead { margin: 0 auto 28px; }
+.menu-card [id$="Area"] { margin-top: auto; }
 .menu-icon { font-size: 2.4rem; color: var(--oro); margin-bottom: 16px; display: inline-flex; align-items: center; justify-content: center; }
 .menu-icon svg { display: block; }
 .menu-unavailable { color: var(--grigio); font-style: italic; }
@@ -532,33 +526,70 @@ button.btn { color: inherit; }
   font-size: .7rem; font-weight: 700;
 }
 
-/* --- Sezione Colazioni Salate (premium) --- */
-.section.salate { background: linear-gradient(180deg, var(--nero) 0%, var(--nero-card) 100%); }
 .section-lead { color: var(--grigio); max-width: 640px; margin: 10px auto 0; font-size: 1rem; line-height: 1.6; }
-.grid-salate {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr));
-  gap: 22px; margin-top: 40px;
+
+/* ============================================================
+   COSA OFFRIAMO — categorie con carosello immagini indipendente
+   ============================================================ */
+.section.offriamo { background: linear-gradient(180deg, var(--nero) 0%, var(--nero-card) 100%); }
+.offerte { display: flex; flex-direction: column; gap: 72px; margin-top: 20px; }
+.offerta { display: grid; grid-template-columns: 1.05fr .95fr; gap: 52px; align-items: center; }
+/* Alterna media e testo per un ritmo elegante */
+.offerta:nth-child(even) .offerta-media { order: 2; }
+.offerta-num {
+  font-family: var(--display); font-size: 1.1rem; color: var(--oro);
+  letter-spacing: 3px; display: block;
 }
-.card-salata {
-  background: var(--nero-card); border: 1px solid var(--bordo);
-  border-radius: var(--radius); overflow: hidden;
-  transition: transform .4s var(--ease), border-color .4s var(--ease), box-shadow .4s var(--ease);
+.offerta-body h3 {
+  font-family: var(--display); color: var(--crema);
+  font-size: clamp(1.6rem, 3vw, 2.3rem); line-height: 1.15; margin: 8px 0 14px;
 }
-.card-salata:hover {
-  transform: translateY(-6px); border-color: var(--oro);
-  box-shadow: 0 20px 44px -18px rgba(201,164,76,.5);
+.offerta-body p { color: var(--grigio); font-size: .98rem; line-height: 1.65; max-width: 480px; }
+
+/* --- Carosello riutilizzabile --- */
+.carousel {
+  position: relative; border-radius: var(--radius); overflow: hidden;
+  border: 1px solid var(--bordo); box-shadow: 0 24px 60px -28px rgba(0,0,0,.85);
 }
-.salata-img {
-  height: 190px; background-size: cover; background-position: center;
-  position: relative;
+.carousel-track { display: flex; transition: transform .7s var(--ease); will-change: transform; }
+.carousel-slide { flex: 0 0 100%; min-width: 0; }
+.carousel-slide img {
+  width: 100%; height: 380px; object-fit: cover; display: block;
 }
-.salata-img::after {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(180deg, rgba(15,14,12,0) 40%, rgba(15,14,12,.55) 100%);
+.carousel-btn {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 2;
+  width: 42px; height: 42px; border-radius: 50%;
+  background: rgba(12,11,9,.6); border: 1px solid var(--bordo); color: var(--oro);
+  font-size: 1.6rem; line-height: 1; cursor: pointer;
+  display: grid; place-items: center;
+  backdrop-filter: blur(6px); opacity: 0; transition: opacity .3s var(--ease), background .25s, color .25s;
 }
-.salata-body { padding: 20px 22px 24px; }
-.salata-body h3 { font-family: var(--display); color: var(--crema); font-size: 1.4rem; margin-bottom: 6px; }
-.salata-body p { color: var(--grigio); font-size: .9rem; line-height: 1.55; }
+.carousel:hover .carousel-btn, .carousel:focus-within .carousel-btn { opacity: 1; }
+.carousel-btn:hover { background: var(--oro); color: var(--nero); }
+.carousel-btn.prev { left: 14px; }
+.carousel-btn.next { right: 14px; }
+.carousel-dots {
+  position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); z-index: 2;
+  display: flex; gap: 8px;
+}
+.carousel-dot {
+  width: 8px; height: 8px; padding: 0; border-radius: 50%;
+  background: rgba(243,236,221,.35); border: none; cursor: pointer;
+  transition: background .3s var(--ease), transform .3s var(--ease);
+}
+.carousel-dot.active { background: var(--oro); transform: scale(1.35); }
+
+@media (max-width: 860px) {
+  .offerte { gap: 48px; }
+  .offerta { grid-template-columns: 1fr; gap: 24px; }
+  .offerta:nth-child(even) .offerta-media { order: 0; }
+  .offerta-body { text-align: center; }
+  .offerta-body p { margin: 0 auto; }
+  .carousel-btn { opacity: 1; }
+}
+@media (max-width: 600px) {
+  .carousel-slide img { height: 260px; }
+}
 
 /* --- Menu del Giorno: badge fascia oraria, prezzo, esaurito --- */
 .dishes-window {
@@ -604,5 +635,4 @@ button.btn { color: inherit; }
 @media (max-width: 600px) {
   .hero-badges { gap: 8px; }
   .hero-badges li { font-size: .76rem; padding: 7px 13px; }
-  .salata-img { height: 165px; }
 }
