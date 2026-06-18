@@ -20,6 +20,7 @@
       --bg:           #1c1a16;   /* sfondo cucina, scuro per ridurre fatica visiva */
       --accento:      #e8b34a;
       --verde:        #6cc06c;
+      --blu:          #5aa6e3;
       --rosso:        #c0584a;
       --body: 'Manrope', system-ui, -apple-system, sans-serif;
       --ticket: 'Special Elite', 'Courier New', Courier, monospace;
@@ -146,6 +147,20 @@
     }
     .ticket.appena-arrivato { animation: flashNew 1.4s ease-out 3; }
 
+    /* MODIFICATA dall'admin — evidenziazione animata (blu) + badge */
+    @keyframes flashMod {
+      0%, 100% { box-shadow: 0 0 0 0 var(--blu), 0 18px 30px -10px rgba(0,0,0,.6); }
+      50%      { box-shadow: 0 0 0 8px rgba(90,166,227,.5), 0 18px 30px -10px rgba(0,0,0,.6); }
+    }
+    .ticket.modificata { animation: flashMod 1.4s ease-out 3; }
+    .ticket.modificata::before { background: var(--blu); }
+    .t-mod-badge {
+      position: absolute; top: 10px; right: 12px;
+      background: var(--blu); color: #fff;
+      font-family: var(--body); font-size: .72rem; font-weight: 700;
+      letter-spacing: .5px; padding: 4px 10px; border-radius: 100px;
+    }
+
     /* Rotazione casuale leggera */
     .ticket.r-1 { transform: rotate(-1.2deg); }
     .ticket.r-2 { transform: rotate(0.6deg); }
@@ -227,6 +242,7 @@
   // Stato applicativo
   let prenotazioni = [];
   let idVisti = new Set();        // per detection di nuove prenotazioni confermate
+  let firme = new Map();          // id -> "firma" dei dati, per rilevare modifiche dell'admin
   let primaCarica = true;
   let suonoAttivo = true;
   let mostraCompletate = false;
@@ -297,22 +313,48 @@
     } catch (e) { /* errore di rete: silenzioso, riproveremo al prossimo polling */ }
   }
 
+  /** Firma dei campi rilevanti per la cucina: se cambia, l'admin ha modificato
+   *  la prenotazione (piatti, persone, orario o note). */
+  function firmaPren(p) {
+    const piatti = (p.piatti || []).map(x => x.nome).sort().join('|');
+    return [p.persone, p.orario, p.note || '', piatti].join('§');
+  }
+
   function rilevaNuove() {
     if (primaCarica) {
       // Al primo caricamento marchiamo tutto come "già visto", senza suoni né flash.
-      prenotazioni.forEach(p => idVisti.add(String(p.id)));
+      prenotazioni.forEach(p => { idVisti.add(String(p.id)); firme.set(String(p.id), firmaPren(p)); });
       primaCarica = false;
       return;
     }
-    // Una prenotazione è "nuova" per la cucina quando appare confermata
-    // per la prima volta (e non è già stata completata su questo dispositivo).
-    const nuove = prenotazioni.filter(p => !idVisti.has(String(p.id)) && !completate.has(String(p.id)));
-    nuove.forEach(p => idVisti.add(String(p.id)));
+    // Confrontiamo con lo stato precedente per distinguere prenotazioni
+    // NUOVE (appena confermate) da quelle MODIFICATE dall'admin.
+    const nuove = [];
+    const modificate = [];
+    prenotazioni.forEach(p => {
+      const id = String(p.id);
+      const f  = firmaPren(p);
+      if (completate.has(id)) { firme.set(id, f); return; }   // completate sul device: ignorate
+      if (!idVisti.has(id)) {
+        idVisti.add(id);
+        nuove.push(p);
+      } else if (firme.has(id) && firme.get(id) !== f) {
+        modificate.push(p);
+      }
+      firme.set(id, f);
+    });
+
     if (nuove.length > 0) {
       if (suonoAttivo) suonaCampanello();
       mostraToast(`🔔 ${nuove.length} prenotazione${nuove.length>1?'i':''} confermat${nuove.length>1?'e':'a'}!`);
       nuove.forEach(p => p.__appenaArrivata = true);
       setTimeout(() => nuove.forEach(p => delete p.__appenaArrivata), 5000);
+    }
+    if (modificate.length > 0) {
+      if (suonoAttivo) suonaCampanello();
+      mostraToast(`✎ ${modificate.length} prenotazione${modificate.length>1?'i':''} aggiornat${modificate.length>1?'e':'a'}!`);
+      modificate.forEach(p => p.__modificata = true);
+      setTimeout(() => modificate.forEach(p => delete p.__modificata), 5000);
     }
   }
 
@@ -361,10 +403,12 @@
     const isCompletata = completate.has(String(p.id));
 
     const card = document.createElement('article');
-    card.className = `ticket r-${(idx % 4) + 1}` + (isCompletata ? ' completata' : '') + (p.__appenaArrivata ? ' appena-arrivato' : '');
+    card.className = `ticket r-${(idx % 4) + 1}` + (isCompletata ? ' completata' : '')
+      + (p.__appenaArrivata ? ' appena-arrivato' : '') + (p.__modificata ? ' modificata' : '');
     const noteAlert = notaCritica(p.note);
 
     card.innerHTML = `
+      ${p.__modificata ? '<span class="t-mod-badge">✎ Aggiornata</span>' : ''}
       <div class="t-head">
         <div class="nome">${p.nome ? escapeHtml(p.nome) : 'Prenotazione'}</div>
         <div class="meta">
