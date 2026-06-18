@@ -21,6 +21,7 @@
     <div class="nav-inner">
       <a href="#hero" class="brand" aria-label="Mozart Café Bistrò — Home">
         <img src="img/logo.png" alt="Mozart Café Bistrò" class="brand-logo" />
+        <span class="brand-name">Bistrout &amp; Café Mozart</span>
       </a>
 
       <nav class="nav-links" id="navLinks">
@@ -34,8 +35,15 @@
       </nav>
 
       <div class="nav-tools">
-        <!-- Selettore lingua -->
-        <select class="lang-select" id="langSelect" aria-label="Lingua"></select>
+        <!-- Selettore lingua con bandiere -->
+        <div class="lang-switch" id="langSwitch">
+          <button type="button" class="lang-current" id="langCurrent" aria-haspopup="listbox" aria-expanded="false" aria-label="Lingua / Language">
+            <img class="lang-flag" id="langCurrentFlag" alt="" width="20" height="15" />
+            <span class="lang-code" id="langCurrentCode"></span>
+            <span class="lang-caret" aria-hidden="true">▾</span>
+          </button>
+          <ul class="lang-menu" id="langMenu" role="listbox" aria-label="Lingua"></ul>
+        </div>
 
         <!-- Pulsante menu mobile (hamburger) -->
         <button class="hamburger" id="hamburger" aria-label="Apri menu">

@@ -13,16 +13,45 @@ document.addEventListener('DOMContentLoaded', () => {
   const yearEl = document.getElementById('year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-  /* ---------- Selettore lingua ---------- */
-  const langSelect = document.getElementById('langSelect');
-  if (langSelect && window.LINGUE) {
-    window.LINGUE.forEach(({ code, label }) => {
-      const opt = document.createElement('option');
-      opt.value = code; opt.textContent = label;
-      langSelect.appendChild(opt);
+  /* ---------- Selettore lingua (dropdown con bandiere) ---------- */
+  const langSwitch  = document.getElementById('langSwitch');
+  const langMenu    = document.getElementById('langMenu');
+  const langBtn     = document.getElementById('langCurrent');
+  const langFlag    = document.getElementById('langCurrentFlag');
+  const langCode    = document.getElementById('langCurrentCode');
+  const flagUrl     = (c) => `https://flagcdn.com/${c}.svg`;
+
+  if (langSwitch && langMenu && window.LINGUE) {
+    const closeLang = () => { langSwitch.classList.remove('open'); langBtn.setAttribute('aria-expanded', 'false'); };
+    const openLang  = () => { langSwitch.classList.add('open');    langBtn.setAttribute('aria-expanded', 'true'); };
+
+    // Aggiorna il pulsante corrente e l'evidenziazione nella lista
+    const setLangUI = (code) => {
+      const l = window.LINGUE.find(x => x.code === code) || window.LINGUE[0];
+      langFlag.src = flagUrl(l.flag);
+      langFlag.alt = l.label;
+      langCode.textContent = l.code.toUpperCase();
+      langMenu.querySelectorAll('li').forEach(li => li.classList.toggle('active', li.dataset.code === l.code));
+    };
+
+    // Costruisce le voci con bandiera + nome lingua
+    window.LINGUE.forEach(({ code, label, flag }) => {
+      const li = document.createElement('li');
+      li.dataset.code = code;
+      li.setAttribute('role', 'option');
+      li.innerHTML = `<img class="lang-flag" src="${flagUrl(flag)}" alt="" width="20" height="15" /><span>${label}</span>`;
+      li.addEventListener('click', () => { window.I18N.apply(code); setLangUI(code); closeLang(); });
+      langMenu.appendChild(li);
     });
-    langSelect.value = window.I18N.init();
-    langSelect.addEventListener('change', () => window.I18N.apply(langSelect.value));
+
+    setLangUI(window.I18N.init());
+
+    langBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      langSwitch.classList.contains('open') ? closeLang() : openLang();
+    });
+    document.addEventListener('click', (e) => { if (!langSwitch.contains(e.target)) closeLang(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLang(); });
   }
 
   /* ---------- Navbar allo scroll ---------- */

@@ -113,6 +113,7 @@ button.btn { color: inherit; }
   box-shadow: 0 2px 12px rgba(0,0,0,.28);
   object-fit: contain;
 }
+.brand-name { font-family: var(--display); font-size: 1.3rem; line-height: 1.05; color: var(--crema); white-space: nowrap; }
 .nav-links { display: flex; gap: 30px; }
 .nav-links a { font-size: .9rem; font-weight: 400; color: var(--crema); position: relative; transition: color .3s; }
 .nav-links a::after { content: ""; position: absolute; left: 0; bottom: -6px; width: 0; height: 1px; background: var(--oro); transition: width .3s var(--ease); }
@@ -128,16 +129,40 @@ button.btn { color: inherit; }
 
 /* Strumenti a destra nella navbar (lingua + hamburger) */
 .nav-tools { display: flex; align-items: center; gap: 14px; }
-.lang-select {
+
+/* Selettore lingua personalizzato con bandiere */
+.lang-switch { position: relative; }
+.lang-current {
+  display: inline-flex; align-items: center; gap: 8px;
   background: rgba(12,11,9,.6); color: var(--crema);
   border: 1px solid var(--bordo); border-radius: 100px;
-  padding: 8px 14px; font-family: var(--body); font-size: .82rem;
-  cursor: pointer; transition: border-color .3s, color .3s;
-  -webkit-appearance: none; appearance: none;
+  padding: 7px 12px; font-family: var(--body); font-size: .82rem; font-weight: 600;
+  letter-spacing: .5px; cursor: pointer; transition: border-color .3s, color .3s;
 }
-.lang-select:hover { border-color: var(--oro); color: var(--oro); }
-.lang-select:focus { outline: none; border-color: var(--oro); }
-.lang-select option { background: var(--nero); color: var(--crema); }
+.lang-current:hover { border-color: var(--oro); color: var(--oro); }
+.lang-current:focus-visible { outline: none; border-color: var(--oro); }
+.lang-caret { font-size: .7rem; opacity: .8; transition: transform .25s; }
+.lang-switch.open .lang-caret { transform: rotate(180deg); }
+.lang-flag {
+  width: 20px; height: 15px; border-radius: 2px; object-fit: cover; display: block;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.14);
+}
+.lang-menu {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: 60;
+  background: rgba(12,11,9,.98); backdrop-filter: blur(14px);
+  border: 1px solid var(--bordo); border-radius: 12px; padding: 6px;
+  list-style: none; min-width: 178px; display: none;
+  box-shadow: 0 20px 50px rgba(0,0,0,.55);
+}
+.lang-switch.open .lang-menu { display: block; }
+.lang-menu li {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: 8px; cursor: pointer;
+  color: var(--crema); font-size: .86rem; transition: background .2s, color .2s;
+}
+.lang-menu li:hover { background: var(--oro-tenue); color: var(--oro); }
+.lang-menu li.active { color: var(--oro); }
+.lang-menu li.active::after { content: "✓"; margin-left: auto; font-size: .8rem; }
 
 /* ============================================================
    HERO
@@ -382,6 +407,11 @@ button.btn { color: inherit; }
 
   .hero { background-attachment: scroll; }
   .facts { gap: 24px; }
+}
+@media (max-width: 600px) {
+  /* Navbar compatta: il logo contiene già il nome, evitiamo l'affollamento */
+  .brand-name { display: none; }
+  .brand-logo { height: 40px; padding: 5px 10px; }
 }
 @media (max-width: 480px) {
   .form-card { padding: 26px 20px; }

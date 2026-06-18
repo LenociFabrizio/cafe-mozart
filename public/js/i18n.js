@@ -1424,16 +1424,17 @@ Object.keys(EXTRA_TRANSLATIONS).forEach(lang => {
 const AMPM_LANGS = ['en', 'zh'];
 
 /* Elenco lingue mostrate nel selettore */
+/* 'flag' = codice paese ISO per le bandiere (https://flagcdn.com) */
 const LINGUE = [
-  { code: 'it', label: 'Italiano' },
-  { code: 'en', label: 'English' },
-  { code: 'fr', label: 'Français' },
-  { code: 'es', label: 'Español' },
-  { code: 'de', label: 'Deutsch' },
-  { code: 'zh', label: '中文' },
-  { code: 'pl', label: 'Polski' },
-  { code: 'ru', label: 'Русский' },
-  { code: 'pt', label: 'Português' }
+  { code: 'it', label: 'Italiano',   flag: 'it' },
+  { code: 'en', label: 'English',    flag: 'gb' },
+  { code: 'fr', label: 'Français',   flag: 'fr' },
+  { code: 'es', label: 'Español',    flag: 'es' },
+  { code: 'de', label: 'Deutsch',    flag: 'de' },
+  { code: 'zh', label: '中文',        flag: 'cn' },
+  { code: 'pl', label: 'Polski',     flag: 'pl' },
+  { code: 'ru', label: 'Русский',    flag: 'ru' },
+  { code: 'pt', label: 'Português',  flag: 'pt' }
 ];
 
 window.LINGUE = LINGUE;
