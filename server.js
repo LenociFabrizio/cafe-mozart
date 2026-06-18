@@ -1021,7 +1021,7 @@ app.post('/api/admin/prenotazioni/crea', async (req, res) => {
 /* Modifica una prenotazione esistente (admin) */
 app.post('/api/admin/prenotazioni/modifica', async (req, res) => {
   if (!(await authOk(req))) return res.status(401).json({ ok: false, messaggio: 'Password errata.' });
-  const { id, nome, telefono, persone, data, orario, note } = req.body;
+  const { id, nome, telefono, persone, data, orario, note, piatti } = req.body;
   const nPersone = Number(persone);
 
   if (!nome || String(nome).trim().length < 2)
@@ -1057,6 +1057,26 @@ app.post('/api/admin/prenotazioni/modifica', async (req, res) => {
           note     = ${note ? String(note).trim() : ''}
       WHERE id = ${Number(id)}
     `;
+
+    // Se il client invia la lista piatti, la sostituiamo integralmente
+    // (consente di aggiungere/rimuovere pietanze: da menu del giorno o fuori menu).
+    let piattiFinali = pren.piatti;
+    if (Array.isArray(piatti)) {
+      piattiFinali = piatti
+        .map(pi => ({
+          tipo: pi.tipo === 'carta' ? 'carta' : 'giorno',
+          nome: String(pi && pi.nome || '').trim().slice(0, 80)
+        }))
+        .filter(pi => pi.nome.length >= 1);
+      await sql`DELETE FROM prenotazione_piatti WHERE prenotazione_id = ${Number(id)}`;
+      for (let i = 0; i < piattiFinali.length; i++) {
+        await sql`
+          INSERT INTO prenotazione_piatti (prenotazione_id, tipo, nome, ordine)
+          VALUES (${Number(id)}, ${piattiFinali[i].tipo}, ${piattiFinali[i].nome}, ${i})
+        `;
+      }
+    }
+
     const aggiornata = {
       ...pren,
       nome:     String(nome).trim(),
@@ -1064,7 +1084,8 @@ app.post('/api/admin/prenotazioni/modifica', async (req, res) => {
       persone:  nPersone,
       data:     dataFinale,
       orario,
-      note:     note ? String(note).trim() : ''
+      note:     note ? String(note).trim() : '',
+      piatti:   piattiFinali
     };
     res.json({ ok: true, prenotazione: aggiornata });
   } catch (err) {

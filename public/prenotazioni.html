@@ -107,6 +107,19 @@
     .modal .row .btn { flex: 1; }
     .danger { background: #c0584a !important; color: #fff !important; box-shadow: none !important; }
 
+    /* Piatti nella modale di modifica */
+    .ed-piatti { list-style: none; display: flex; flex-direction: column; gap: 6px; margin: 4px 0 12px; }
+    .ed-piatti li { display: flex; align-items: center; gap: 8px; background: var(--nero); border: 1px solid var(--bordo); border-radius: 8px; padding: 8px 10px; font-size: .86rem; color: var(--crema); }
+    .ed-piatti li .cat { font-size: .62rem; color: var(--oro); text-transform: uppercase; letter-spacing: .4px; border: 1px solid var(--bordo); border-radius: 100px; padding: 2px 7px; white-space: nowrap; }
+    .ed-piatti li .nm { flex: 1; }
+    .ed-piatti li .rm { background: none; border: none; color: #e08a7a; cursor: pointer; font-size: 1.1rem; line-height: 1; padding: 0 4px; }
+    .ed-piatti .vuoto { color: var(--grigio); font-style: italic; font-size: .8rem; padding: 4px 0; }
+    .ed-add-row { display: flex; gap: 8px; margin-bottom: 8px; }
+    .ed-add-row select, .ed-add-row input { flex: 1; background: var(--nero); border: 1px solid var(--bordo); border-radius: 9px; padding: 10px 12px; color: var(--crema); font-family: var(--body); font-size: .88rem; }
+    .ed-add-row select:focus, .ed-add-row input:focus { outline: none; border-color: var(--oro); }
+    .ed-add-row button { flex: 0 0 auto; min-width: 46px; font-size: 1.1rem; padding: 6px 12px; border-radius: 9px; }
+    .ed-piatti-title { font-size: .76rem; color: var(--grigio); margin: 6px 0 6px; display: block; }
+
     .msg { font-size: .85rem; min-height: 1em; }
     .msg.error { color: #e08a7a; }
     .msg.ok { color: #8fc98f; }
@@ -208,7 +221,7 @@
 
   <!-- Modale modifica prenotazione -->
   <div class="modal-bg" id="editModal">
-    <div class="modal" style="max-width:480px;text-align:left">
+    <div class="modal" style="max-width:480px;text-align:left;max-height:90vh;overflow-y:auto">
       <h3 style="text-align:center">Modifica prenotazione</h3>
       <div class="nr-grid">
         <label>Nome *<input type="text" id="edNome" maxlength="60" /></label>
@@ -216,6 +229,18 @@
         <label>Persone *<input type="number" id="edPersone" min="1" max="20" /></label>
         <label>Orario *<select id="edOrario"></select></label>
         <label style="grid-column:1/-1">Note<input type="text" id="edNote" maxlength="200" /></label>
+        <div style="grid-column:1/-1">
+          <span class="ed-piatti-title">Piatti della prenotazione</span>
+          <ul class="ed-piatti" id="edPiattiList"></ul>
+          <div class="ed-add-row">
+            <select id="edPiattoMenu"><option value="">— Aggiungi dal menu del giorno —</option></select>
+            <button type="button" class="btn btn-ghost" id="edAddMenu" title="Aggiungi piatto selezionato">＋</button>
+          </div>
+          <div class="ed-add-row">
+            <input type="text" id="edPiattoCustom" maxlength="80" placeholder="Piatto fuori menu…" />
+            <button type="button" class="btn btn-ghost" id="edAddCustom" title="Aggiungi piatto fuori menu">＋</button>
+          </div>
+        </div>
       </div>
       <p class="msg" id="edMsg" style="text-align:center;margin-top:10px"></p>
       <div class="row" style="margin-top:18px">
@@ -238,6 +263,7 @@
     let disponibilita = [];
     let dataCorrente = '';
     let filtroStato = 'tutte';
+    let menuPiatti = [];     // piatti del menu del giorno visibili e disponibili
 
     const ETICHETTA_STATO = { attesa: 'In attesa', confermata: 'Confermata', rifiutata: 'Rifiutata', completata: 'Completata' };
     const ETICHETTA_ORIGINE = { online: 'Online', telefonica: 'Telefonica', walkin: 'Walk-in', manuale: 'Manuale' };
@@ -256,6 +282,20 @@
       dataCorrente = iso;
       $('dataSel').value = iso;
       carica();
+      caricaMenu();
+    }
+
+    /* Carica i piatti del menu del giorno (solo visibili e disponibili) per la modale di modifica. */
+    async function caricaMenu() {
+      try {
+        const res = await fetch('/api/admin/piatti?password=' + encodeURIComponent(adminPassword));
+        if (!res.ok) return;
+        const out = await res.json();
+        menuPiatti = (out.piatti || []).filter(p => p.stato === 'visibile');
+        const opts = '<option value="">— Aggiungi dal menu del giorno —</option>' +
+          menuPiatti.map((p, i) => `<option value="${i}">${esc(p.nome)}</option>`).join('');
+        $('edPiattoMenu').innerHTML = opts;
+      } catch { /* il menu non è essenziale: si possono comunque aggiungere piatti fuori menu */ }
     }
     function esci() {
       sessionStorage.removeItem(STORAGE_KEY); adminPassword = '';
@@ -480,6 +520,7 @@
 
     /* ---------- MODIFICA PRENOTAZIONE ---------- */
     let editId = null;
+    let editPiatti = [];     // copia di lavoro dei piatti della prenotazione in modifica
     function apriModifica(p) {
       editId = p.id;
       $('edNome').value = p.nome || '';
@@ -488,8 +529,51 @@
       $('edOrario').value = p.orario || '';
       $('edNote').value = p.note || '';
       $('edMsg').textContent = '';
+      editPiatti = (p.piatti || []).map(d => ({ tipo: d.tipo === 'carta' ? 'carta' : 'giorno', nome: d.nome }));
+      $('edPiattoMenu').value = '';
+      $('edPiattoCustom').value = '';
+      renderEditPiatti();
       $('editModal').classList.add('show');
     }
+
+    function renderEditPiatti() {
+      const ul = $('edPiattiList');
+      if (!editPiatti.length) {
+        ul.innerHTML = '<li class="vuoto">Nessun piatto selezionato</li>';
+        return;
+      }
+      ul.innerHTML = '';
+      editPiatti.forEach((d, idx) => {
+        const li = document.createElement('li');
+        const cat = d.tipo === 'carta' ? 'Drink List' : 'Menu del Giorno';
+        li.innerHTML = `<span class="cat">${cat}</span><span class="nm"></span><button type="button" class="rm" title="Rimuovi">✕</button>`;
+        li.querySelector('.nm').textContent = d.nome;
+        li.querySelector('.rm').addEventListener('click', () => { editPiatti.splice(idx, 1); renderEditPiatti(); });
+        ul.appendChild(li);
+      });
+    }
+
+    function aggiungiPiatto(nome, tipo) {
+      const n = String(nome || '').trim().slice(0, 80);
+      if (n.length < 1) return;
+      editPiatti.push({ tipo: tipo === 'carta' ? 'carta' : 'giorno', nome: n });
+      renderEditPiatti();
+    }
+
+    $('edAddMenu').addEventListener('click', () => {
+      const i = $('edPiattoMenu').value;
+      if (i === '') return;
+      const p = menuPiatti[Number(i)];
+      if (p) aggiungiPiatto(p.nome, 'giorno');
+      $('edPiattoMenu').value = '';
+    });
+    $('edAddCustom').addEventListener('click', () => {
+      aggiungiPiatto($('edPiattoCustom').value, 'giorno');
+      $('edPiattoCustom').value = '';
+      $('edPiattoCustom').focus();
+    });
+    $('edPiattoCustom').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('edAddCustom').click(); } });
+
     $('editCancel').addEventListener('click', () => { $('editModal').classList.remove('show'); editId = null; });
     $('editSave').addEventListener('click', async () => {
       if (editId == null) return;
@@ -497,7 +581,8 @@
         password: adminPassword, id: editId,
         nome: $('edNome').value.trim(), telefono: $('edTel').value.trim(),
         persone: parseInt($('edPersone').value, 10), orario: $('edOrario').value,
-        data: dataCorrente, note: $('edNote').value.trim()
+        data: dataCorrente, note: $('edNote').value.trim(),
+        piatti: editPiatti
       };
       try {
         let res = await fetch('/api/admin/prenotazioni/modifica', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
