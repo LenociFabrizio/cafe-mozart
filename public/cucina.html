@@ -8,20 +8,18 @@
   <style>
     /* ============================================================
        KITCHEN DISPLAY — Bistrout & Café Mozart
+       Versione semplificata: sola visualizzazione delle
+       prenotazioni CONFERMATE. La cucina può solo segnare
+       "completata" (nasconde il ticket, solo su questo dispositivo).
        ============================================================ */
     :root {
       --carta:        #f5ecd7;   /* avorio carta termica */
-      --carta-2:      #ebe1c8;
-      --carta-old:    #d8cba8;   /* tono invecchiato */
       --inchiostro:   #1a1812;   /* nero/marrone scuro */
       --grigio-scuro: #4a463d;
       --grigio:       #8a8478;
       --bg:           #1c1a16;   /* sfondo cucina, scuro per ridurre fatica visiva */
-      --bg-2:         #252118;
-      --st-nuova:     #e8b34a;
-      --st-prep:      #5aa6e3;
-      --st-pronta:    #6cc06c;
-      --st-conseg:    #8a8478;
+      --accento:      #e8b34a;
+      --verde:        #6cc06c;
       --rosso:        #c0584a;
       --body: 'Manrope', system-ui, -apple-system, sans-serif;
       --ticket: 'Special Elite', 'Courier New', Courier, monospace;
@@ -29,7 +27,6 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { background: var(--bg); color: #e9e2cf; font-family: var(--body); min-height: 100vh; }
-    body { padding: 0; }
 
     /* LOGIN */
     .login {
@@ -40,8 +37,8 @@
     .login p.sub { color: #a39c8f; font-size: .88rem; margin-bottom: 16px; }
     .login label { display: block; font-size: .8rem; color: #a39c8f; letter-spacing: .5px; margin: 12px 0 6px; }
     .login input { width: 100%; background: #1c1a14; border: 1px solid #3a3527; border-radius: 8px; padding: 12px 14px; color: #e9e2cf; font-family: var(--body); font-size: .95rem; }
-    .login input:focus { outline: none; border-color: var(--st-nuova); }
-    .login button { width: 100%; margin-top: 16px; padding: 13px; background: var(--st-nuova); color: #1c1a14; border: none; border-radius: 100px; cursor: pointer; font-family: var(--body); font-weight: 700; font-size: .85rem; letter-spacing: 1.2px; text-transform: uppercase; transition: filter .2s; }
+    .login input:focus { outline: none; border-color: var(--accento); }
+    .login button { width: 100%; margin-top: 16px; padding: 13px; background: var(--accento); color: #1c1a14; border: none; border-radius: 100px; cursor: pointer; font-family: var(--body); font-weight: 700; font-size: .85rem; letter-spacing: 1.2px; text-transform: uppercase; transition: filter .2s; }
     .login button:hover { filter: brightness(1.1); }
     .login .msg { margin-top: 12px; color: var(--rosso); font-size: .85rem; min-height: 1em; text-align: center; }
 
@@ -54,21 +51,18 @@
       display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between;
     }
     .topbar h1 { font-family: var(--ticket); font-size: 1.5rem; color: var(--carta); letter-spacing: 1px; }
-    .topbar .now { font-family: var(--ticket); color: var(--st-nuova); font-size: 1.4rem; min-width: 80px; text-align: center; }
+    .topbar .now { font-family: var(--ticket); color: var(--accento); font-size: 1.4rem; min-width: 80px; text-align: center; }
 
     .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-    .controls .ctrl-btn, .controls input, .controls select {
+    .controls .ctrl-btn, .controls input {
       background: #2a2620; border: 1px solid #3a3527; color: #e9e2cf;
       font-family: var(--body); font-size: .82rem; padding: 8px 14px; border-radius: 100px; cursor: pointer;
       transition: all .25s;
     }
-    .controls .ctrl-btn:hover { border-color: var(--st-nuova); color: var(--st-nuova); }
-    .controls input[type="search"] { width: 140px; cursor: text; }
-    .controls input:focus, .controls select:focus { outline: none; border-color: var(--st-nuova); }
-    .filters { display: flex; gap: 6px; flex-wrap: wrap; }
-    .filter { font-size: .76rem; padding: 7px 14px; }
-    .filter.active { background: var(--st-nuova); border-color: var(--st-nuova); color: #1c1a14; font-weight: 600; }
-    .filter .count { opacity: .7; margin-left: 4px; }
+    .controls .ctrl-btn:hover { border-color: var(--accento); color: var(--accento); }
+    .controls input[type="search"] { width: 160px; cursor: text; }
+    .controls input:focus { outline: none; border-color: var(--accento); }
+    .controls .ctrl-btn.active { background: var(--accento); border-color: var(--accento); color: #1c1a14; font-weight: 600; }
 
     /* AREA COMANDE */
     .board {
@@ -87,7 +81,7 @@
       background: var(--carta);
       color: var(--inchiostro);
       font-family: var(--ticket);
-      padding: 20px 22px 26px;
+      padding: 20px 22px 24px;
       box-shadow:
         0 18px 30px -10px rgba(0,0,0,.6),
         0 4px 10px rgba(0,0,0,.3),
@@ -101,25 +95,19 @@
     }
     .ticket:hover { transform: translateY(-3px) rotate(0deg) !important; box-shadow: 0 24px 40px -10px rgba(0,0,0,.7), 0 6px 14px rgba(0,0,0,.35); }
 
-    /* Striscia colorata laterale per riconoscimento rapido dello stato */
+    /* Striscia colorata laterale */
     .ticket::before {
       content: ''; position: absolute; left: 0; top: 6px; bottom: 6px; width: 6px;
-      background: var(--stato-color, var(--st-nuova));
+      background: var(--verde);
     }
+    .ticket.completata { opacity: .5; }
+    .ticket.completata::before { background: var(--grigio); }
 
-    /* Stati */
-    .ticket.st-nuova            { --stato-color: var(--st-nuova); }
-    .ticket.st-in_preparazione  { --stato-color: var(--st-prep); }
-    .ticket.st-pronta           { --stato-color: var(--st-pronta); }
-    .ticket.st-consegnata       { --stato-color: var(--st-conseg); opacity: .55; }
-
-    /* Header del ticket: numero tavolo grande */
+    /* Header del ticket: nome cliente in evidenza */
     .t-head { text-align: center; border-bottom: 2px dashed var(--grigio-scuro); padding-bottom: 12px; margin-bottom: 12px; }
-    .t-head .tag { font-size: .82rem; color: var(--grigio-scuro); letter-spacing: 2px; text-transform: uppercase; }
-    .t-head .tavolo { font-size: 2.6rem; line-height: 1; color: var(--inchiostro); font-weight: bold; margin: 4px 0 6px; }
-    .t-head .meta { font-size: 1rem; color: var(--grigio-scuro); display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
+    .t-head .nome { font-size: 1.9rem; line-height: 1.1; color: var(--inchiostro); font-weight: bold; margin-bottom: 8px; }
+    .t-head .meta { font-size: 1.05rem; color: var(--grigio-scuro); display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; }
     .t-head .meta b { color: var(--inchiostro); }
-    .t-head .cliente { font-size: 1.05rem; color: var(--inchiostro); margin-top: 6px; font-style: italic; }
 
     /* Lista pietanze */
     .t-piatti { font-size: 1.18rem; line-height: 1.55; }
@@ -137,40 +125,25 @@
     .t-note.alert .lbl { color: var(--rosso); }
     .t-note.alert .testo { color: var(--rosso); font-weight: bold; }
 
-    /* Timer (minuti in attesa) */
-    .t-timer { margin-top: 14px; padding-top: 10px; border-top: 1px dotted var(--grigio); display: flex; justify-content: space-between; align-items: baseline; font-size: .92rem; color: var(--grigio-scuro); }
-    .t-timer .min { font-family: var(--ticket); font-size: 1.4rem; color: var(--inchiostro); }
-    .ticket.urgente .t-timer .min { color: var(--rosso); animation: pulseRed 1s ease-in-out infinite; }
-    .ticket.urgente { box-shadow: 0 0 0 3px var(--rosso), 0 18px 30px -10px rgba(0,0,0,.6); }
-
-    /* Pulsanti azione stato */
-    .t-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 14px; }
+    /* Pulsante azione */
+    .t-actions { margin-top: 16px; }
     .t-actions button {
-      background: rgba(0,0,0,.06); border: 1px solid var(--grigio-scuro);
-      color: var(--inchiostro); font-family: var(--body); font-size: .76rem;
-      padding: 9px 8px; border-radius: 6px; cursor: pointer;
-      letter-spacing: .8px; text-transform: uppercase; font-weight: 600;
-      transition: all .2s;
+      width: 100%;
+      background: var(--verde); border: 1px solid var(--verde);
+      color: var(--inchiostro); font-family: var(--body); font-size: .82rem;
+      padding: 11px 8px; border-radius: 6px; cursor: pointer;
+      letter-spacing: .8px; text-transform: uppercase; font-weight: 700;
+      transition: filter .2s, background .2s;
     }
-    .t-actions button:hover { background: var(--inchiostro); color: var(--carta); }
-    .t-actions button.primary { background: var(--stato-color, var(--st-nuova)); border-color: var(--stato-color, var(--st-nuova)); color: var(--inchiostro); }
-    .t-actions button.primary:hover { filter: brightness(.92); }
-    .t-actions button.full { grid-column: 1 / -1; }
-
-    /* Etichetta stato in alto a destra del ticket */
-    .t-stato-badge {
-      position: absolute; top: 14px; right: 14px;
-      background: var(--stato-color); color: var(--inchiostro);
-      font-family: var(--body); font-size: .68rem; font-weight: 700;
-      padding: 4px 10px; border-radius: 100px; letter-spacing: 1px; text-transform: uppercase;
-    }
+    .t-actions button:hover { filter: brightness(.92); }
+    .t-actions button.ripristina { background: transparent; color: var(--grigio-scuro); border-color: var(--grigio-scuro); }
+    .t-actions button.ripristina:hover { background: var(--inchiostro); color: var(--carta); }
 
     /* NUOVA — evidenziazione animata */
     @keyframes flashNew {
-      0%, 100% { box-shadow: 0 0 0 0 var(--st-nuova), 0 18px 30px -10px rgba(0,0,0,.6); }
+      0%, 100% { box-shadow: 0 0 0 0 var(--accento), 0 18px 30px -10px rgba(0,0,0,.6); }
       50%      { box-shadow: 0 0 0 8px rgba(232,179,74,.45), 0 18px 30px -10px rgba(0,0,0,.6); }
     }
-    @keyframes pulseRed { 0%,100%{opacity:1} 50%{opacity:.5} }
     .ticket.appena-arrivato { animation: flashNew 1.4s ease-out 3; }
 
     /* Rotazione casuale leggera */
@@ -182,7 +155,7 @@
     /* Toast aggiornamento */
     .toast {
       position: fixed; bottom: 24px; left: 50%; transform: translate(-50%, 80px);
-      background: var(--st-nuova); color: var(--inchiostro);
+      background: var(--accento); color: var(--inchiostro);
       padding: 14px 26px; border-radius: 100px; font-family: var(--ticket); font-size: 1.05rem;
       box-shadow: 0 20px 40px rgba(0,0,0,.5); z-index: 100;
       opacity: 0; transition: opacity .35s, transform .45s ease; pointer-events: none;
@@ -192,7 +165,7 @@
     /* Responsive: tablet/TV/mobile */
     @media (min-width: 1600px) {
       .board { grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 30px; padding: 32px; }
-      .t-head .tavolo { font-size: 3rem; }
+      .t-head .nome { font-size: 2.2rem; }
       .t-piatti { font-size: 1.3rem; }
     }
     @media (max-width: 720px) {
@@ -204,7 +177,6 @@
       .ticket.r-1, .ticket.r-2, .ticket.r-3, .ticket.r-4 { transform: none; }
     }
 
-    /* Fullscreen */
     body.fullscreen .topbar { padding: 10px 16px; }
   </style>
 </head>
@@ -223,23 +195,19 @@
 <!-- DASHBOARD CUCINA -->
 <div id="kdsView" style="display:none">
   <div class="topbar">
-    <h1>★ COMANDE CUCINA</h1>
+    <h1>★ PRENOTAZIONI CONFERMATE</h1>
     <span class="now" id="nowClock">--:--</span>
     <div class="controls">
-      <input type="search" id="searchTavolo" placeholder="Cerca tavolo…" autocomplete="off" />
-      <select id="sortBy" title="Ordinamento">
-        <option value="vecchi">Più vecchi prima</option>
-        <option value="nuovi">Più nuovi prima</option>
-      </select>
-      <button class="ctrl-btn" id="btnSound" title="Suono nuovo ordine">🔔 Suono: ON</button>
+      <input type="search" id="searchNome" placeholder="Cerca cliente…" autocomplete="off" />
+      <button class="ctrl-btn" id="btnCompletate" title="Mostra/nascondi le completate">✓ Completate</button>
+      <button class="ctrl-btn" id="btnSound" title="Suono nuova prenotazione">🔔 Suono: ON</button>
       <button class="ctrl-btn" id="btnFs" title="Schermo intero">⛶ Schermo intero</button>
       <button class="ctrl-btn" id="btnLogout">Esci</button>
     </div>
-    <div class="filters" id="filters"></div>
   </div>
 
   <div class="board" id="board">
-    <p class="empty">Caricamento comande…</p>
+    <p class="empty">Caricamento prenotazioni…</p>
   </div>
 </div>
 
@@ -247,29 +215,27 @@
 
 <script>
   /* ============================================================
-     KITCHEN DISPLAY — logica
+     KITCHEN DISPLAY — logica (solo visualizzazione)
      ============================================================ */
   const $ = (id) => document.getElementById(id);
-  const STORAGE_KEY = 'mozartAdminPwd';
+  const STORAGE_KEY    = 'mozartAdminPwd';
+  const COMPLETATE_KEY = 'mozartCucinaCompletate';   // ID nascosti SOLO su questo dispositivo
   let adminPassword = sessionStorage.getItem(STORAGE_KEY) || '';
 
   const POLL_MS = 8000;     // polling ogni 8 secondi
-  const URGENTE_MIN = 25;   // dopo 25 minuti il ticket diventa urgente
 
   // Stato applicativo
   let prenotazioni = [];
-  let idVisti = new Set();        // per detection di nuove comande
+  let idVisti = new Set();        // per detection di nuove prenotazioni confermate
   let primaCarica = true;
-  let filtroStato = 'tutte';
   let suonoAttivo = true;
+  let mostraCompletate = false;
   let timerPoll = null;
 
-  const STATI = {
-    nuova:           { label: 'Nuova',            next: 'in_preparazione', nextLabel: 'Prendi in carico' },
-    in_preparazione: { label: 'In preparazione',  next: 'pronta',          nextLabel: 'Segna pronta' },
-    pronta:          { label: 'Pronta',           next: 'consegnata',      nextLabel: 'Consegnata' },
-    consegnata:      { label: 'Consegnata',       next: null,              nextLabel: null }
-  };
+  // ID delle prenotazioni segnate come "completata" dalla cucina.
+  // Persistono solo in locale: non viene mai modificato lo stato sul server.
+  let completate = new Set(JSON.parse(localStorage.getItem(COMPLETATE_KEY) || '[]').map(String));
+  function salvaCompletate() { localStorage.setItem(COMPLETATE_KEY, JSON.stringify([...completate])); }
 
   /* ---------- LOGIN ---------- */
   async function tentaLogin(pwd) {
@@ -320,13 +286,11 @@
       if (res.status === 401) { esci(); return; }
       const out = await res.json();
       const tutte = (out.prenotazioni || []);
-      // In cucina interessano solo le prenotazioni del giorno che hanno passato
-      // il vaglio del titolare (attesa o confermata) e con piatti selezionati.
-      // Le rifiutate, completate o senza pietanze vengono ignorate.
+      // In cucina interessano SOLO le prenotazioni di oggi che il titolare
+      // ha CONFERMATO. Attesa, rifiutate e completate non vengono mostrate.
       prenotazioni = tutte.filter(p =>
         p.data === oggiISO() &&
-        (p.stato === 'attesa' || p.stato === 'confermata') &&
-        Array.isArray(p.piatti) && p.piatti.length > 0
+        p.stato === 'confermata'
       );
       rilevaNuove();
       render();
@@ -340,12 +304,13 @@
       primaCarica = false;
       return;
     }
-    const nuove = prenotazioni.filter(p => !idVisti.has(String(p.id)));
+    // Una prenotazione è "nuova" per la cucina quando appare confermata
+    // per la prima volta (e non è già stata completata su questo dispositivo).
+    const nuove = prenotazioni.filter(p => !idVisti.has(String(p.id)) && !completate.has(String(p.id)));
     nuove.forEach(p => idVisti.add(String(p.id)));
     if (nuove.length > 0) {
       if (suonoAttivo) suonaCampanello();
-      mostraToast(`🔔 ${nuove.length} nuova comanda${nuove.length>1?'e':''}!`);
-      // Marca le nuove per l'animazione (verrà applicata in render)
+      mostraToast(`🔔 ${nuove.length} prenotazione${nuove.length>1?'i':''} confermat${nuove.length>1?'e':'a'}!`);
       nuove.forEach(p => p.__appenaArrivata = true);
       setTimeout(() => nuove.forEach(p => delete p.__appenaArrivata), 5000);
     }
@@ -357,24 +322,8 @@
   /** Aggrega pietanze duplicate in "Nx Nome". */
   function aggregaPiatti(piatti) {
     const map = new Map();
-    piatti.forEach(p => {
-      const k = p.nome;
-      map.set(k, (map.get(k) || 0) + 1);
-    });
+    piatti.forEach(p => { map.set(p.nome, (map.get(p.nome) || 0) + 1); });
     return [...map.entries()].map(([nome, qty]) => ({ nome, qty }));
-  }
-
-  /** Minuti trascorsi dalla creazione della prenotazione. */
-  function minutiDa(iso) {
-    if (!iso) return 0;
-    return Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 60000));
-  }
-
-  /** Numero tavolo derivato dall'id (le prenotazioni online non hanno un n.tavolo,
-   *  quindi usiamo gli ultimi 3 cifre dell'id come identificativo univoco). */
-  function numeroTavolo(p) {
-    const s = String(p.id);
-    return s.slice(-3).padStart(3, '0');
   }
 
   /** Rileva nelle note allergie / richieste critiche. */
@@ -382,83 +331,52 @@
   function notaCritica(note) { return note && ALLERGIE_RE.test(note); }
 
   function render() {
-    // Filtro per stato
     let lista = prenotazioni.slice();
-    if (filtroStato !== 'tutte') {
-      lista = lista.filter(p => (p.statoCucina || 'nuova') === filtroStato);
+
+    // Completate: nascoste di default, visibili solo col toggle dedicato.
+    if (mostraCompletate) {
+      lista = lista.filter(p => completate.has(String(p.id)));
+    } else {
+      lista = lista.filter(p => !completate.has(String(p.id)));
     }
-    // Filtro ricerca per tavolo
-    const q = $('searchTavolo').value.trim();
-    if (q) lista = lista.filter(p => numeroTavolo(p).includes(q));
-    // Ordinamento
-    const sortBy = $('sortBy').value;
-    lista.sort((a, b) => {
-      const ta = new Date(a.creataIl || 0).getTime();
-      const tb = new Date(b.creataIl || 0).getTime();
-      return sortBy === 'nuovi' ? tb - ta : ta - tb;
-    });
 
-    // Tabs di filtro con contatori
-    aggiornaFiltri();
+    // Filtro ricerca per nome cliente
+    const q = $('searchNome').value.trim().toLowerCase();
+    if (q) lista = lista.filter(p => (p.nome || '').toLowerCase().includes(q));
 
-    // Render board
+    // Ordinamento per orario di prenotazione
+    lista.sort((a, b) => String(a.orario || '').localeCompare(String(b.orario || '')));
+
     const board = $('board');
     if (!lista.length) {
-      board.innerHTML = '<p class="empty">Nessuna comanda in questa categoria.</p>';
+      board.innerHTML = `<p class="empty">${mostraCompletate ? 'Nessuna prenotazione completata.' : 'Nessuna prenotazione confermata.'}</p>`;
       return;
     }
     board.innerHTML = '';
     lista.forEach((p, idx) => board.appendChild(creaTicket(p, idx)));
   }
 
-  function aggiornaFiltri() {
-    const conteggi = { tutte: prenotazioni.length, nuova: 0, in_preparazione: 0, pronta: 0, consegnata: 0 };
-    prenotazioni.forEach(p => { conteggi[p.statoCucina || 'nuova']++; });
-    const def = [
-      ['tutte', 'Tutte'],
-      ['nuova', 'Nuove'],
-      ['in_preparazione', 'In prep.'],
-      ['pronta', 'Pronte'],
-      ['consegnata', 'Consegnate']
-    ];
-    $('filters').innerHTML = def.map(([k, lab]) =>
-      `<button class="ctrl-btn filter ${filtroStato===k?'active':''}" data-f="${k}">${lab} <span class="count">${conteggi[k]||0}</span></button>`
-    ).join('');
-    $('filters').querySelectorAll('.filter').forEach(b => b.addEventListener('click', () => { filtroStato = b.dataset.f; render(); }));
-  }
-
   function creaTicket(p, idx) {
-    const stato = p.statoCucina || 'nuova';
-    const min = minutiDa(p.creataIl);
-    const urgente = stato !== 'consegnata' && stato !== 'pronta' && min >= URGENTE_MIN;
     const piattiAgg = aggregaPiatti(p.piatti || []);
-    const oraOrdine = (() => {
-      try { const d = new Date(p.creataIl); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
-      catch { return p.orario || ''; }
-    })();
+    const isCompletata = completate.has(String(p.id));
 
     const card = document.createElement('article');
-    card.className = `ticket st-${stato} r-${(idx % 4) + 1}` + (urgente ? ' urgente' : '') + (p.__appenaArrivata ? ' appena-arrivato' : '');
+    card.className = `ticket r-${(idx % 4) + 1}` + (isCompletata ? ' completata' : '') + (p.__appenaArrivata ? ' appena-arrivato' : '');
     const noteAlert = notaCritica(p.note);
 
     card.innerHTML = `
-      <span class="t-stato-badge">${STATI[stato].label}</span>
-
       <div class="t-head">
-        <div class="tag">Tavolo</div>
-        <div class="tavolo">#${numeroTavolo(p)}</div>
+        <div class="nome">${p.nome ? escapeHtml(p.nome) : 'Prenotazione'}</div>
         <div class="meta">
-          <span><b>${oraOrdine}</b> · ord.</span>
-          <span><b>${escapeHtml(p.orario || '')}</b> · prenot.</span>
-          <span><b>${escapeHtml(p.persone)}</b> cop.</span>
+          <span><b>${escapeHtml(p.orario || '—')}</b> · ore</span>
+          <span><b>${escapeHtml(p.persone)}</b> coperti</span>
         </div>
-        ${p.nome ? `<div class="cliente">${escapeHtml(p.nome)}</div>` : ''}
       </div>
 
       <div class="t-piatti">
         ${piattiAgg.length ? `<ul>${piattiAgg.map(d => `
           <li><span class="qty">${d.qty}×</span><span class="nome">${escapeHtml(d.nome)}</span></li>
-        `).join('')}</ul>` : '<p class="vuoto">Solo tavolo, nessuna pietanza</p>'}
+        `).join('')}</ul>` : '<p class="vuoto">Nessun piatto pre-ordinato</p>'}
       </div>
 
       ${p.note ? `
@@ -467,56 +385,37 @@
           <div class="testo">${escapeHtml(p.note)}</div>
         </div>` : ''}
 
-      <div class="t-timer">
-        <span>In coda da</span>
-        <span class="min">${min} min</span>
-      </div>
-
       <div class="t-actions"></div>
     `;
 
-    // Bottoni stato
     const acts = card.querySelector('.t-actions');
-    if (STATI[stato].next) {
-      const bn = document.createElement('button');
-      bn.className = 'primary full';
-      bn.textContent = '→ ' + STATI[stato].nextLabel;
-      bn.addEventListener('click', () => cambiaStatoCucina(p.id, STATI[stato].next));
-      acts.appendChild(bn);
+    const btn = document.createElement('button');
+    if (isCompletata) {
+      btn.className = 'ripristina';
+      btn.textContent = '↶ Ripristina';
+      btn.addEventListener('click', () => { completate.delete(String(p.id)); salvaCompletate(); render(); });
+    } else {
+      btn.textContent = '✓ Completata';
+      btn.addEventListener('click', () => {
+        completate.add(String(p.id)); salvaCompletate();
+        mostraToast('Prenotazione completata');
+        render();
+      });
     }
-    if (stato !== 'nuova') {
-      const back = document.createElement('button');
-      back.className = 'full';
-      back.textContent = '↶ Torna a Nuova';
-      back.addEventListener('click', () => cambiaStatoCucina(p.id, 'nuova'));
-      acts.appendChild(back);
-    }
+    acts.appendChild(btn);
 
     return card;
   }
 
-  async function cambiaStatoCucina(id, statoCucina) {
-    // Aggiornamento ottimistico: applica subito lo stato in locale e poi conferma.
-    const p = prenotazioni.find(x => String(x.id) === String(id));
-    const precedente = p ? p.statoCucina : null;
-    if (p) p.statoCucina = statoCucina;
-    render();
-    try {
-      const res = await fetch('/api/admin/prenotazioni/stato-cucina', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ password: adminPassword, id, statoCucina })
-      });
-      const out = await res.json();
-      if (!out.ok) { if (p) p.statoCucina = precedente; render(); mostraToast('Errore: ' + (out.messaggio || '')); }
-    } catch {
-      if (p) p.statoCucina = precedente; render();
-      mostraToast('Errore di connessione.');
-    }
-  }
+  /* ---------- CONTROLLI: search, completate, fullscreen, suono ---------- */
+  $('searchNome').addEventListener('input', render);
 
-  /* ---------- CONTROLLI: search, sort, fullscreen, suono ---------- */
-  $('searchTavolo').addEventListener('input', render);
-  $('sortBy').addEventListener('change', render);
+  $('btnCompletate').addEventListener('click', () => {
+    mostraCompletate = !mostraCompletate;
+    $('btnCompletate').classList.toggle('active', mostraCompletate);
+    $('btnCompletate').textContent = mostraCompletate ? '✓ Mostra attive' : '✓ Completate';
+    render();
+  });
 
   $('btnSound').addEventListener('click', () => {
     suonoAttivo = !suonoAttivo;
@@ -542,7 +441,6 @@
     try {
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       const t0 = audioCtx.currentTime;
-      // Due brevi "ding" discreti
       [0, 0.18].forEach((off, i) => {
         const osc = audioCtx.createOscillator(); const g = audioCtx.createGain();
         osc.connect(g); g.connect(audioCtx.destination);
@@ -560,10 +458,6 @@
     const el = $('toast'); el.textContent = testo; el.classList.add('show');
     clearTimeout(mostraToast._t); mostraToast._t = setTimeout(() => el.classList.remove('show'), 3000);
   }
-
-  /* Aggiornamento timer minuti (senza dover ricaricare): ogni 30 secondi
-   * facciamo un re-render per aggiornare il contatore "X min in coda". */
-  setInterval(() => { if ($('kdsView').style.display !== 'none' && !primaCarica) render(); }, 30000);
 </script>
 </body>
 </html>
