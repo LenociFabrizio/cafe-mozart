@@ -105,15 +105,14 @@ button.btn { color: inherit; }
 }
 .nav-inner { width: 92%; max-width: var(--maxw); margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
 .brand { display: flex; align-items: center; gap: 12px; }
-.brand-mark {
-  width: 42px; height: 42px; flex: none;
-  display: grid; place-items: center;
-  font-family: var(--display); font-size: 1.5rem; font-weight: 600;
-  color: var(--nero); background: linear-gradient(135deg, var(--oro), var(--oro-chiaro));
-  border-radius: 50%;
+/* Logo su badge chiaro (l'artwork è nero, la navbar è scura) */
+.brand-logo {
+  display: block; height: 46px; width: auto; flex: none;
+  background: var(--crema);
+  padding: 6px 14px; border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.28);
+  object-fit: contain;
 }
-.brand-text { font-family: var(--display); font-size: 1.4rem; line-height: 1; color: var(--crema); display: flex; flex-direction: column; }
-.brand-text small { font-family: var(--body); font-size: .55rem; letter-spacing: 4px; color: var(--oro); margin-top: 3px; }
 .nav-links { display: flex; gap: 30px; }
 .nav-links a { font-size: .9rem; font-weight: 400; color: var(--crema); position: relative; transition: color .3s; }
 .nav-links a::after { content: ""; position: absolute; left: 0; bottom: -6px; width: 0; height: 1px; background: var(--oro); transition: width .3s var(--ease); }
@@ -318,7 +317,7 @@ button.btn { color: inherit; }
 .footer { background: #080705; border-top: 1px solid var(--bordo); padding-top: 60px; }
 .footer-inner { display: flex; flex-wrap: wrap; gap: 30px; justify-content: space-between; align-items: flex-start; padding-bottom: 40px; }
 .footer-brand { display: flex; align-items: center; gap: 14px; }
-.footer-brand strong { font-family: var(--display); font-size: 1.3rem; color: var(--crema); display: block; }
+.footer-brand .footer-logo { height: 56px; padding: 7px 16px; }
 .footer-brand small { color: var(--oro); font-size: .72rem; letter-spacing: 2px; text-transform: uppercase; }
 .footer-nav { display: flex; flex-direction: column; gap: 10px; }
 .footer-nav a { color: var(--grigio); font-size: .9rem; transition: color .3s; }
